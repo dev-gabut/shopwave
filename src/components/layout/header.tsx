@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, Waves, LogOut } from 'lucide-react';
+import { Search, Waves, LogOut, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CartIcon } from '@/components/cart-icon';
 import { useAuth } from '@/hooks/use-auth';
@@ -75,6 +75,11 @@ export function Header() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/account')}>
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  <span>Account Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
@@ -96,5 +101,3 @@ export function Header() {
     </header>
   );
 }
-
-    
