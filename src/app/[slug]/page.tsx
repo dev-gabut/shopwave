@@ -1,3 +1,4 @@
+
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { getProductBySlug, getRelatedProducts, getProducts } from '@/lib/products';
@@ -11,6 +12,7 @@ type ProductPageProps = {
   params: {
     slug: string;
   };
+  searchParams: { [key: string]: string | string[] | undefined };
 };
 
 export async function generateStaticParams() {
