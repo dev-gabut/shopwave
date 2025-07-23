@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, Waves, LogOut, User as UserIcon } from 'lucide-react';
+import { Search, Waves, LogOut, User as UserIcon, Shield, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CartIcon } from '@/components/cart-icon';
 import { useAuth } from '@/hooks/use-auth';
@@ -70,6 +70,18 @@ export function Header() {
                   <UserIcon className="mr-2 h-4 w-4" />
                   <span>Account Settings</span>
                 </DropdownMenuItem>
+                {user.role === 'seller' && (
+                  <DropdownMenuItem onClick={() => router.push('/seller')}>
+                    <Store className="mr-2 h-4 w-4" />
+                    <span>Seller Panel</span>
+                  </DropdownMenuItem>
+                )}
+                {user.role === 'admin' && (
+                  <DropdownMenuItem onClick={() => router.push('/admin')}>
+                    <Shield className="mr-2 h-4 w-4" />
+                    <span>Admin Panel</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />

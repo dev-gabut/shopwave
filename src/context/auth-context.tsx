@@ -6,6 +6,7 @@ import { createContext, useState, ReactNode, useEffect } from 'react';
 interface User {
   id: string;
   email: string;
+  role: 'customer' | 'seller' | 'admin';
 }
 
 interface AuthContextType {
@@ -51,7 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const storedUsers = JSON.parse(localStorage.getItem('users') || '{}');
     if (storedUsers[email] && storedUsers[email].password === pass) {
-        const loggedInUser = { id: email, email };
+        const loggedInUser: User = { 
+            id: email, 
+            email, 
+            role: storedUsers[email].role || 'customer' 
+        };
         setUser(loggedInUser);
         localStorage.setItem('user', JSON.stringify(loggedInUser));
         setLoading(false);
@@ -72,7 +77,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw new Error('User already exists');
     }
 
-    storedUsers[email] = { password: pass };
+    // Hardcode roles for demo purposes
+    let role: User['role'] = 'customer';
+    if (email.toLowerCase() === 'admin@example.com') {
+      role = 'admin';
+    } else if (email.toLowerCase() === 'seller@example.com') {
+      role = 'seller';
+    }
+
+    storedUsers[email] = { password: pass, role: role };
     localStorage.setItem('users', JSON.stringify(storedUsers));
     setLoading(false);
   };
@@ -95,5 +108,3 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
-
-    
