@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, Waves, LogOut, User as UserIcon, Shield, Store } from 'lucide-react';
+import { Search, Waves, LogOut, User as UserIcon, Shield, Store, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CartIcon } from '@/components/cart-icon';
 import { useAuth } from '@/hooks/use-auth';
@@ -90,14 +90,24 @@ export function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <div className="flex items-center space-x-2">
-              <Button asChild variant="ghost">
-                <Link href="/login">Log In</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/signup">Sign Up</Link>
-              </Button>
-            </div>
+            <DropdownMenu>
+                <Button asChild>
+                    <Link href="/login">Login</Link>
+                </Button>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="default" size="icon" className="w-8">
+                        <ChevronDown className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => router.push('/login')}>
+                        Log In
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => router.push('/signup')}>
+                        Sign Up
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
