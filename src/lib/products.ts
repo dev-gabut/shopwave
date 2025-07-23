@@ -1,3 +1,4 @@
+
 import type { Product } from './types';
 
 const products: Product[] = [
@@ -83,9 +84,13 @@ const products: Product[] = [
   },
 ];
 
-export async function getProducts(): Promise<Product[]> {
+export async function getProducts(query?: string): Promise<Product[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
+  if (query) {
+    const lowerCaseQuery = query.toLowerCase();
+    return products.filter(p => p.name.toLowerCase().includes(lowerCaseQuery) || p.description.toLowerCase().includes(lowerCaseQuery));
+  }
   return products;
 }
 

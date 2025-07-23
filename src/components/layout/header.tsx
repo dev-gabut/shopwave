@@ -1,7 +1,8 @@
+
 'use client';
 
 import Link from 'next/link';
-import { ShoppingBag, Waves } from 'lucide-react';
+import { Search, Waves } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CartIcon } from '@/components/cart-icon';
 
@@ -20,12 +21,18 @@ export function Header() {
           <Link href="/" className="text-foreground/80 hover:text-primary transition-colors">
             Home
           </Link>
-          <Link href="/#products" className="text-foreground/80 hover:text-primary transition-colors">
+          <Link href="/search" className="text-foreground/80 hover:text-primary transition-colors">
             All Products
           </Link>
         </nav>
 
         <div className="flex items-center space-x-4">
+            <Button asChild variant="ghost" size="icon">
+                <Link href="/search">
+                    <Search className="h-6 w-6" />
+                    <span className="sr-only">Search products</span>
+                </Link>
+            </Button>
           <CartIcon />
         </div>
       </div>
