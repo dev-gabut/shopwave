@@ -8,7 +8,7 @@ import { formatPrice } from '@/lib/utils';
 import { ProductCard } from '@/components/product-card';
 import { AddToCartButton } from './add-to-cart-button';
 import type { Metadata } from 'next'
-
+ 
 type Props = {
   params: { slug: string }
   searchParams: { [key: string]: string | string[] | undefined }
@@ -21,7 +21,7 @@ export async function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProductBySlug(params.slug);
   if (!product) {
     return { title: 'Product not found' };
@@ -38,7 +38,7 @@ export default async function ProductPage({ params }: Props) {
   if (!product) {
     notFound();
   }
-
+  
   const relatedProducts = await getRelatedProducts(product.id);
 
   return (
