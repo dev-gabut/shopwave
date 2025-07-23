@@ -15,7 +15,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Minus, Plus, Trash2, CreditCard } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 
 const checkoutSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -35,14 +36,28 @@ type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { user, loading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/login?redirect=/checkout');
+    }
+  }, [user, loading, router]);
+
+
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
-    defaultValues: { email: '', firstName: '', lastName: '', address: '', city: '', postalCode: '', country: '', cardName: '', cardNumber: '', cardExpiry: '', cardCvc: '' },
+    defaultValues: { email: user?.email || '', firstName: '', lastName: '', address: '', city: '', postalCode: '', country: '', cardName: '', cardNumber: '', cardExpiry: '', cardCvc: '' },
   });
+
+  useEffect(() => {
+    if (user?.email) {
+      form.setValue('email', user.email);
+    }
+  }, [user, form]);
 
   const onSubmit = (data: CheckoutFormValues) => {
     setIsSubmitting(true);
@@ -57,6 +72,14 @@ export default function CheckoutPage() {
       router.push('/');
     }, 1500);
   };
+  
+  if (loading || !user) {
+    return (
+        <div className="flex justify-center items-center h-64">
+            <p>Loading...</p>
+        </div>
+    )
+  }
 
   if (cartItems.length === 0 && !isSubmitting) {
     return (
@@ -114,7 +137,7 @@ export default function CheckoutPage() {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <section className="space-y-4">
                   <h3 className="font-semibold text-lg">Contact Information</h3>
-                  <FormField control={form.control} name="email" render={({ field }) => ( <FormItem> <FormLabel>Email</FormLabel> <FormControl><Input placeholder="you@example.com" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
+                  <FormField control={form.control} name="email" render={({ field }) => ( <FormItem> <FormLabel>Email</FormLabel> <FormControl><Input placeholder="you@example.com" {...field} disabled /></FormControl> <FormMessage /> </FormItem> )} />
                 </section>
                 <section className="space-y-4">
                   <h3 className="font-semibold text-lg">Shipping Address</h3>
@@ -149,3 +172,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    
