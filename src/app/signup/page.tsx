@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -42,7 +43,7 @@ export default function SignupPage() {
       await signup(data.email, data.password);
       toast({
         title: 'Account Created',
-        description: 'Welcome! Please log in to continue.',
+        description: 'Welcome! Please sign in to continue.',
       });
       router.push('/login');
     } catch (error) {
@@ -118,7 +119,7 @@ export default function SignupPage() {
            <p className="mt-6 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
             <Link href="/login" className="font-semibold text-primary hover:underline">
-              Log in
+              Sign In
             </Link>
           </p>
         </CardContent>

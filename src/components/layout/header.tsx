@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -91,7 +92,7 @@ export function Header() {
             </DropdownMenu>
           ) : (
             <Button asChild>
-                <Link href="/login">Login</Link>
+                <Link href="/login">Sign In</Link>
             </Button>
           )}
         </div>

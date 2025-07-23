@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, Suspense } from 'react';
@@ -38,7 +39,7 @@ function LoginPageContent() {
     try {
       await login(data.email, data.password);
       toast({
-        title: 'Login Successful',
+        title: 'Sign In Successful',
         description: "Welcome back!",
       });
       const redirect = searchParams.get('redirect') || '/';
@@ -47,7 +48,7 @@ function LoginPageContent() {
       console.error(error);
       toast({
         variant: 'destructive',
-        title: 'Login Failed',
+        title: 'Sign In Failed',
         description: 'Invalid credentials. Please try again.',
       });
     } finally {
@@ -96,7 +97,7 @@ function LoginPageContent() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Logging in...' : 'Log In'}
+                {loading ? 'Signing in...' : 'Sign In'}
               </Button>
             </form>
           </Form>
