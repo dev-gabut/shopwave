@@ -2,7 +2,6 @@
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { getProductBySlug, getRelatedProducts, getProducts } from '@/lib/products';
-import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/utils';
 import { ProductCard } from '@/components/product-card';
