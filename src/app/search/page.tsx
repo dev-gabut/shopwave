@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { getProducts } from '@/lib/products';
 import type { Product } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 function SearchResults() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const initialQuery = searchParams.get('q') || '';
   
   const [products, setProducts] = useState<Product[]>([]);
@@ -27,10 +28,9 @@ function SearchResults() {
     fetchProducts();
   }, [searchTerm]);
   
-  const handleSearchChange = (term: string) => {
+  const handleSearchSubmit = (term: string) => {
       setSearchTerm(term);
-      // Update URL without navigating
-      window.history.replaceState(null, '', `?q=${encodeURIComponent(term)}`);
+      router.push(`/search?q=${encodeURIComponent(term)}`);
   }
 
   return (
@@ -38,7 +38,7 @@ function SearchResults() {
       <section className="space-y-4">
         <h1 className="text-4xl md:text-6xl font-headline font-bold tracking-tight">Search Results</h1>
         <div className="max-w-xl">
-          <ProductSearch onSearchChange={handleSearchChange} initialValue={initialQuery} />
+          <ProductSearch onSearchSubmit={handleSearchSubmit} initialValue={initialQuery} />
         </div>
       </section>
 

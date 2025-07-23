@@ -5,10 +5,8 @@ import { useState, useEffect } from 'react';
 import { getProducts } from '@/lib/products';
 import type { Product } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
-import { ProductSearch } from '@/components/product-search';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import {
   Carousel,
   CarouselContent,
@@ -18,13 +16,11 @@ import {
 } from '@/components/ui/carousel';
 import Link from 'next/link';
 import Image from 'next/image';
-import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -34,10 +30,6 @@ export default function Home() {
     };
     fetchProducts();
   }, []);
-
-  const handleSearch = (term: string) => {
-    router.push(`/search?q=${encodeURIComponent(term)}`);
-  };
 
   return (
     <div className="space-y-12">
@@ -83,9 +75,6 @@ export default function Home() {
             <CarouselNext className="absolute right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
           </Carousel>
         )}
-         <div className="max-w-md mx-auto pt-8">
-          <ProductSearch onSearchSubmit={handleSearch} />
-        </div>
       </section>
 
       <section>
