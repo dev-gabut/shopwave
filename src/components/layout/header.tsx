@@ -38,15 +38,6 @@ export function Header() {
             <span className="text-2xl font-bold font-headline text-primary">ShopWave</span>
           </Link>
         </div>
-        
-        <nav className="hidden md:flex items-center space-x-6 text-sm font-medium">
-          <Link href="/" className="text-foreground/80 hover:text-primary transition-colors">
-            Home
-          </Link>
-          <Link href="/search" className="text-foreground/80 hover:text-primary transition-colors">
-            All Products
-          </Link>
-        </nav>
 
         <div className="flex items-center space-x-4">
             <Button asChild variant="ghost" size="icon">
