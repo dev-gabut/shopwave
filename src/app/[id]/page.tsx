@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import Image from 'next/image';
 
 // *************** IMPORT MODULE ***************
-import { getProductBySlug, getRelatedProducts, GetProducts, type DBProduct } from '@/lib/products';
+import { getProductById, getRelatedProducts, GetProducts, type DBProduct } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/utils';
@@ -15,36 +15,36 @@ import { AddToCartButton } from './add-to-cart-button';
 // *************** TYPE 
 type ProductPageProps = {
   params: {
-    slug: string;
+    id: string;
   };
 };
 
 
 /**
- * Generates static params for product pages based on product slugs.
+ * Generates static params for product pages based on product ids.
  *
  * @async
  * @function GenerateStaticParams
- * @returns {Promise<Array<{slug: string}>>} Array of params objects for static generation
+ * @returns {Promise<Array<{id: string}>>} Array of params objects for static generation
  */
 export async function GenerateStaticParams() {
   const products = await GetProducts();
   return products.map((product: DBProduct) => ({
-    slug: product.slug,
+    id: product.id.toString(),
   }));
 }
 
 
 /**
- * Generates metadata for a product page based on the product slug.
+ * Generates metadata for a product page based on the product id.
  *
  * @async
  * @function GenerateMetadata
- * @param {ProductPageProps} props - The route params containing the product slug
+ * @param {ProductPageProps} props - The route params containing the product id
  * @returns {Promise<{title: string, description: string}>} Metadata for the page
  */
 async function GenerateMetadata({ params }: ProductPageProps) {
-  const product = await getProductBySlug(params.slug);
+  const product = await getProductById(params.id);
   if (!product) {
     return { title: 'Product not found' };
   }
@@ -57,15 +57,15 @@ async function GenerateMetadata({ params }: ProductPageProps) {
 // *************** COMPONENT ***************
 /**
  * ProductPage component displays a product's details and related products.
- * Fetches product and related products by slug, and normalizes for AddToCartButton.
+ * Fetches product and related products by id, and normalizes for AddToCartButton.
  *
  * @async
  * @function ProductPage
- * @param {ProductPageProps} props - The route params containing the product slug
+ * @param {ProductPageProps} props - The route params containing the product id
  * @returns {Promise<JSX.Element>} The rendered product page
  */
 async function ProductPage({ params }: ProductPageProps) {
-  const product: DBProduct | undefined = await getProductBySlug(params.slug);
+  const product: DBProduct | undefined = await getProductById(params.id);
   if (!product) {
     notFound();
   }
@@ -75,12 +75,12 @@ async function ProductPage({ params }: ProductPageProps) {
   const productForCart = {
     id: String(product.id),
     name: product.name,
-    slug: product.slug,
     description: product.description,
     price: product.price,
     images: product.images,
     category: product.category ?? '',
-    relatedProducts: relatedProducts.map((relatedProduct) => relatedProduct.slug),
+    relatedProducts: [],
+    shopName: product.shopName,
   };
 
   return (

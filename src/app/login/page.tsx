@@ -42,7 +42,7 @@ function LoginPageContent() {
         title: 'Sign In Successful',
         description: "Welcome back!",
       });
-      const redirect = searchParams.get('redirect') || '/';
+      const redirect = searchParams?.get('redirect') || '/';
       router.push(redirect);
     } catch (error) {
       console.error(error);

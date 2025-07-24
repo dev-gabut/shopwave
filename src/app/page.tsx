@@ -42,7 +42,7 @@ export default async function Home() {
             {products.slice(0, 5).map((product: DBProduct) => (
               <CarouselItem key={product.id}>
                 <div className="p-1">
-                  <Link href={`/${product.slug}`}>
+                  <Link href={`/${product.id}`}>
                     <Card className="overflow-hidden">
                       <div className="relative aspect-[2/1] w-full">
                         <Image

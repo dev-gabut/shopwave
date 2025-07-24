@@ -26,7 +26,6 @@ function SearchResults() {
       const mappedProducts: Product[] = allProducts.map((dbProduct) => {
         const productId = String(dbProduct.id);
         const productName = dbProduct.name;
-        const productSlug = dbProduct.slug;
         const productDescription = dbProduct.description;
         const productPrice = dbProduct.price;
         const productImages = dbProduct.images;
@@ -36,7 +35,6 @@ function SearchResults() {
         return {
           id: productId,
           name: productName,
-          slug: productSlug,
           description: productDescription,
           price: productPrice,
           images: productImages,

@@ -5,7 +5,6 @@ import { prisma } from './prisma';
 export type DBProduct = {
   id: number;
   name: string;
-  slug: string;
   description: string;
   price: number;
   images: string[];
@@ -43,7 +42,6 @@ async function GetProducts(query?: string): Promise<DBProduct[]> {
   return products.map((product: any) => ({
     id: product.id,
     name: product.name,
-    slug: product.id.toString(),
     description: product.description,
     price: Number(product.price),
     images: product.images?.map((image: any) => image.imageUrl) || [],
@@ -52,39 +50,7 @@ async function GetProducts(query?: string): Promise<DBProduct[]> {
   }));
 }
 
-/**
- * Retrieves a product by its slug (numeric id as string).
- *
- * @async
- * @function getProductBySlug
- * @param {string} slug - The product slug (numeric id as string)
- * @returns {Promise<DBProduct | undefined>} The product object or undefined if not found
- */
-async function getProductBySlug(slug: string): Promise<DBProduct | undefined> {
-  const id = parseInt(slug, 10);
-  if (isNaN(id)) return undefined;
-  const product: any = await prisma.product.findUnique({
-    where: { id },
-    include: {
-      images: true,
-      category: true,
-      shop: true,
-    },
-  });
-  if (!product) return undefined;
-  return {
-    id: product.id,
-    name: product.name,
-    slug: product.id.toString(),
-    description: product.description,
-    price: Number(product.price),
-    images: product.images?.map((image: any) => image.imageUrl) || [],
-    category: product.category?.name ?? null,
-    shopName: product.shop?.shopName ?? '',
-  };
-}
 
-// Optionally, implement getRelatedProducts using category or shop
 /**
  * Retrieves related products by category, excluding the current product.
  *
@@ -114,7 +80,6 @@ async function getRelatedProducts(productId: number): Promise<DBProduct[]> {
   return related.map((product: any) => ({
     id: product.id,
     name: product.name,
-    slug: product.id.toString(),
     description: product.description,
     price: Number(product.price),
     images: product.images?.map((image: any) => image.imageUrl) || [],
@@ -122,5 +87,36 @@ async function getRelatedProducts(productId: number): Promise<DBProduct[]> {
     shopName: product.shop?.shopName ?? '',
   }));
 }
+
+/**
+ * Retrieves a product by its id.
+ *
+ * @async
+ * @function getProductById
+ * @param {string|number} id - The product id
+ * @returns {Promise<DBProduct | undefined>} The product object or undefined if not found
+ */
+async function getProductById(id: string | number): Promise<DBProduct | undefined> {
+  const productId = typeof id === 'string' ? parseInt(id, 10) : id;
+  if (isNaN(productId)) return undefined;
+  const product: any = await prisma.product.findUnique({
+    where: { id: productId },
+    include: {
+      images: true,
+      category: true,
+      shop: true,
+    },
+  });
+  if (!product) return undefined;
+  return {
+    id: product.id,
+    name: product.name,
+    description: product.description,
+    price: Number(product.price),
+    images: product.images?.map((image: any) => image.imageUrl) || [],
+    category: product.category?.name ?? null,
+    shopName: product.shop?.shopName ?? '',
+  };
+}
 // *************** EXPORT FUNCTIONS ***************
-export { GetProducts, getProductBySlug, getRelatedProducts };
+export { GetProducts, getProductById, getRelatedProducts };
