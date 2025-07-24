@@ -2,12 +2,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import type { Product } from '@/lib/types';
+import type { DBProduct } from '@/lib/products';
 import { formatPrice } from '@/lib/utils';
 import { ArrowRight } from 'lucide-react';
 
 interface ProductCardProps {
-  product: Product;
+  product: DBProduct;
 }
 
 export function ProductCard({ product }: ProductCardProps) {
@@ -27,6 +27,7 @@ export function ProductCard({ product }: ProductCardProps) {
         </CardHeader>
         <CardContent className="p-4 flex-grow">
           <h3 className="text-lg font-headline font-semibold leading-tight">{product.name}</h3>
+          <p className="text-sm text-muted-foreground mt-1">Shop: {product.shopName}</p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">
           <p className="text-lg font-semibold text-primary">{formatPrice(product.price)}</p>

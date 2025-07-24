@@ -3,7 +3,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getProducts } from '@/lib/products';
+import { GetProducts, type DBProduct } from '@/lib/products';
 import type { Product } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
 import { ProductSearch } from '@/components/product-search';
@@ -12,8 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 function SearchResults() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const initialQuery = searchParams.get('q') || '';
-  
+  const initialQuery = searchParams?.get('q') || '';
+
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState(initialQuery);
   const [loading, setLoading] = useState(true);
@@ -21,16 +21,28 @@ function SearchResults() {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
-      const allProducts = await getProducts(searchTerm);
-      setProducts(allProducts);
+      const allProducts: DBProduct[] = await GetProducts(searchTerm);
+      // Map DBProduct to Product
+      const mappedProducts: Product[] = allProducts.map((p) => ({
+        id: String(p.id),
+        name: p.name,
+        slug: p.slug,
+        description: p.description,
+        price: p.price,
+        images: p.images,
+        category: p.category ?? '',
+        relatedProducts: [], // You can fill this if you want related products
+        shopName: p.shopName ?? '',
+      }));
+      setProducts(mappedProducts);
       setLoading(false);
     };
     fetchProducts();
   }, [searchTerm]);
-  
+
   const handleSearchSubmit = (term: string) => {
-      setSearchTerm(term);
-      router.push(`/search?q=${encodeURIComponent(term)}`);
+    setSearchTerm(term);
+    router.push(`/search?q=${encodeURIComponent(term)}`);
   }
 
   return (
@@ -60,7 +72,8 @@ function SearchResults() {
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-6 gap-y-10">
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                // Cast to DBProduct for ProductCard prop compatibility
+                <ProductCard key={product.id} product={product as unknown as DBProduct} />
               ))}
             </div>
           </>

@@ -1,26 +1,49 @@
+
+// *************** IMPORT LIBRARY ***************
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
-import { getProductBySlug, getRelatedProducts, getProducts } from '@/lib/products';
+
+// *************** IMPORT MODULE ***************
+import { getProductBySlug, getRelatedProducts, GetProducts, type DBProduct } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/utils';
 import { ProductCard } from '@/components/product-card';
 import { AddToCartButton } from './add-to-cart-button';
 
+
+// *************** TYPE 
 type ProductPageProps = {
   params: {
     slug: string;
   };
 };
 
-export async function generateStaticParams() {
-  const products = await getProducts();
-  return products.map((product) => ({
+
+/**
+ * Generates static params for product pages based on product slugs.
+ *
+ * @async
+ * @function GenerateStaticParams
+ * @returns {Promise<Array<{slug: string}>>} Array of params objects for static generation
+ */
+export async function GenerateStaticParams() {
+  const products = await GetProducts();
+  return products.map((product: DBProduct) => ({
     slug: product.slug,
   }));
 }
 
-export async function generateMetadata({ params }: ProductPageProps) {
+
+/**
+ * Generates metadata for a product page based on the product slug.
+ *
+ * @async
+ * @function GenerateMetadata
+ * @param {ProductPageProps} props - The route params containing the product slug
+ * @returns {Promise<{title: string, description: string}>} Metadata for the page
+ */
+async function GenerateMetadata({ params }: ProductPageProps) {
   const product = await getProductBySlug(params.slug);
   if (!product) {
     return { title: 'Product not found' };
@@ -31,14 +54,34 @@ export async function generateMetadata({ params }: ProductPageProps) {
   };
 }
 
-export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await getProductBySlug(params.slug);
-
+// *************** COMPONENT ***************
+/**
+ * ProductPage component displays a product's details and related products.
+ * Fetches product and related products by slug, and normalizes for AddToCartButton.
+ *
+ * @async
+ * @function ProductPage
+ * @param {ProductPageProps} props - The route params containing the product slug
+ * @returns {Promise<JSX.Element>} The rendered product page
+ */
+async function ProductPage({ params }: ProductPageProps) {
+  const product: DBProduct | undefined = await getProductBySlug(params.slug);
   if (!product) {
     notFound();
   }
-  
-  const relatedProducts = await getRelatedProducts(product.id);
+  const relatedProducts: DBProduct[] = await getRelatedProducts(product.id);
+
+  // *************** Map DBProduct to Product for AddToCartButton
+  const productForCart = {
+    id: String(product.id),
+    name: product.name,
+    slug: product.slug,
+    description: product.description,
+    price: product.price,
+    images: product.images,
+    category: product.category ?? '',
+    relatedProducts: relatedProducts.map((relatedProduct) => relatedProduct.slug),
+  };
 
   return (
     <div className="space-y-16">
@@ -54,18 +97,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
               priority
             />
           </div>
-          {/* Add gallery for multiple images if needed */}
         </div>
-
         <div className="md:col-span-1 space-y-6">
           <div className="space-y-2">
             <h1 className="text-4xl lg:text-5xl font-bold font-headline">{product.name}</h1>
             <p className="text-muted-foreground text-lg">{product.category}</p>
+            <p className="text-sm text-muted-foreground">Shop: {product.shopName}</p>
           </div>
           <p className="text-3xl font-bold text-primary">{formatPrice(product.price)}</p>
           <Separator />
           <p className="text-foreground/80 leading-relaxed">{product.description}</p>
-          <AddToCartButton product={product} />
+          <AddToCartButton product={productForCart} />
         </div>
       </div>
 
@@ -82,3 +124,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
     </div>
   );
 }
+
+// *************** EXPORT COMPONENT ***************
+export default ProductPage;
+
+// *************** EXPORT FUNCTIONS ***************
+export { GenerateMetadata };

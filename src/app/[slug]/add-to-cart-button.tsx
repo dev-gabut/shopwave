@@ -1,13 +1,27 @@
-'use client';
 
+// *************** IMPORT LIBRARY ***************
+'use client';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { useCart } from '@/hooks/use-cart';
-import type { Product } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
 
-export function AddToCartButton({ product }: { product: Product }) {
+// *************** IMPORT MODULE ***************
+import { Button } from '@/components/ui/button';
+import { useCart } from '@/hooks/use-cart';
+import { useToast } from '@/hooks/use-toast';
+
+// *************** IMPORT TYPE 
+import type { Product } from '@/lib/types';
+
+// *************** COMPONENT 
+/**
+ * AddToCartButton component allows users to select a quantity and add a product to the cart.
+ * Shows a toast notification on successful add.
+ *
+ * @component
+ * @param {{ product: Product }} props - The product to add to cart
+ * @returns {JSX.Element} The rendered add-to-cart button UI
+ */
+function AddToCartButton({ product }: { product: Product }) {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -48,3 +62,6 @@ export function AddToCartButton({ product }: { product: Product }) {
     </div>
   );
 }
+
+// *************** EXPORT COMPONENT ***************
+export { AddToCartButton };

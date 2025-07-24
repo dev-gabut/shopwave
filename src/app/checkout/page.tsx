@@ -60,18 +60,67 @@ export default function CheckoutPage() {
     }
   }, [user, form]);
 
-  const onSubmit = (data: CheckoutFormValues) => {
+  // *************** MIDTRANS PAYMENT INTEGRATION ***************
+  const onSubmit = async (data: CheckoutFormValues) => {
     setIsSubmitting(true);
-    console.log('Order submitted:', data);
+    // Prepare payload for Midtrans
+    const payload = {
+      total_price: cartTotal,
+      full_name: `${data.firstName} ${data.lastName}`,
+      email: data.email,
+      address: data.address,
+      postal_code: data.postalCode,
+      product: cartItems[0]?.name || 'Product',
+      unit_price: cartItems[0]?.price || 0,
+      quantity: cartItems[0]?.quantity || 1,
+      shipping_cost: 25000, // You can make this dynamic
+      insurance_cost: 0,    // Add logic if you want insurance
+    };
 
-    setTimeout(() => {
-      toast({
-        title: "Order Placed!",
-        description: "Thank you for your purchase. Your order is on its way.",
+    try {
+      const res = await fetch('/api/checkout-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
-      clearCart();
-      router.push('/');
-    }, 1500);
+      const result = await res.json();
+      if (result.token) {
+        // Load Snap.js if not loaded
+        if (!window.snap) {
+          const script = document.createElement('script');
+          script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
+          script.setAttribute('data-client-key', process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '');
+          document.body.appendChild(script);
+          script.onload = () => window.snap.pay(result.token, {
+            onSuccess: () => {
+              toast({ title: "Payment Success!", description: "Thank you for your purchase." });
+              clearCart();
+              router.push('/');
+            },
+            onPending: () => toast({ title: "Payment Pending", description: "Your payment is pending." }),
+            onError: () => toast({ title: "Payment Error", description: "There was an error processing your payment." }),
+            onClose: () => toast({ title: "Payment Cancelled", description: "You closed the payment popup." }),
+          });
+        } else {
+          window.snap.pay(result.token, {
+            onSuccess: () => {
+              toast({ title: "Payment Success!", description: "Thank you for your purchase." });
+              clearCart();
+              router.push('/');
+            },
+            onPending: () => toast({ title: "Payment Pending", description: "Your payment is pending." }),
+            onError: () => toast({ title: "Payment Error", description: "There was an error processing your payment." }),
+            onClose: () => toast({ title: "Payment Cancelled", description: "You closed the payment popup." }),
+          });
+        }
+      } else {
+        toast({ title: "Payment Error", description: result.error || "Failed to create transaction." });
+      }
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   if (loading || !user) {
