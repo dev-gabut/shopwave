@@ -23,17 +23,28 @@ function SearchResults() {
       setLoading(true);
       const allProducts: DBProduct[] = await GetProducts(searchTerm);
       // Map DBProduct to Product
-      const mappedProducts: Product[] = allProducts.map((p) => ({
-        id: String(p.id),
-        name: p.name,
-        slug: p.slug,
-        description: p.description,
-        price: p.price,
-        images: p.images,
-        category: p.category ?? '',
-        relatedProducts: [], // You can fill this if you want related products
-        shopName: p.shopName ?? '',
-      }));
+      const mappedProducts: Product[] = allProducts.map((dbProduct) => {
+        const productId = String(dbProduct.id);
+        const productName = dbProduct.name;
+        const productSlug = dbProduct.slug;
+        const productDescription = dbProduct.description;
+        const productPrice = dbProduct.price;
+        const productImages = dbProduct.images;
+        const productCategory = dbProduct.category ?? '';
+        const productRelatedProducts: string[] = [];
+        const productShopName = dbProduct.shopName ?? '';
+        return {
+          id: productId,
+          name: productName,
+          slug: productSlug,
+          description: productDescription,
+          price: productPrice,
+          images: productImages,
+          category: productCategory,
+          relatedProducts: productRelatedProducts,
+          shopName: productShopName,
+        };
+      });
       setProducts(mappedProducts);
       setLoading(false);
     };
