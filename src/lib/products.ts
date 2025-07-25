@@ -94,10 +94,11 @@ export async function getProducts(query?: string): Promise<Product[]> {
   return products;
 }
 
-export async function getProductBySlug(slug: string): Promise<Product | undefined> {
+export async function getProductBySlug(slug: string): Promise<Product | null> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
-  return products.find((p) => p.slug === slug);
+  const product = products.find((p) => p.slug === slug);
+  return product || null;
 }
 
 export async function getRelatedProducts(productId: string): Promise<Product[]> {

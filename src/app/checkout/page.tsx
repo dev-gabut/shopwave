@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { formatPrice } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -86,7 +86,7 @@ export default function CheckoutPage() {
     return (
       <div className="text-center py-20">
         <h1 className="text-4xl font-headline font-bold mb-4">Your Cart is Empty</h1>
-        <p className="text-muted-foreground mb-8">Looks like you haven't added anything to your cart yet.</p>
+        <p className="text-muted-foreground mb-8">Looks like you haven&apos;t added anything to your cart yet.</p>
         <Button asChild size="lg">
           <Link href="/">Start Shopping</Link>
         </Button>
@@ -173,5 +173,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-    
