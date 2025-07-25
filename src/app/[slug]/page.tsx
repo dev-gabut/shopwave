@@ -8,7 +8,7 @@ import { AddToCartButton } from './add-to-cart-button';
 import type { Metadata } from 'next';
 
 type Props = {
-	params: { slug: string };
+	params: Promise<{ slug: string }>;
 	searchParams: { [key: string]: string | string[] | undefined };
 };
 
