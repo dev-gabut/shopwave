@@ -8,7 +8,7 @@ export type DBProduct = {
   description: string;
   price: number;
   images: string[];
-  category: string | null;
+  showcase: string | null;
   shopName: string;
 };
 
@@ -34,7 +34,7 @@ async function GetProducts(query?: string): Promise<DBProduct[]> {
     where,
     include: {
       images: true,
-      category: true,
+      showcase: true,
       shop: true,
     },
     orderBy: { id: 'asc' },
@@ -45,7 +45,7 @@ async function GetProducts(query?: string): Promise<DBProduct[]> {
     description: product.description,
     price: Number(product.price),
     images: product.images?.map((image: any) => image.imageUrl) || [],
-    category: product.category?.name ?? null,
+    showcase: product.showcase?.name ?? null,
     shopName: product.shop?.shopName ?? '',
   }));
 }
@@ -62,17 +62,17 @@ async function GetProducts(query?: string): Promise<DBProduct[]> {
 async function getRelatedProducts(productId: number): Promise<DBProduct[]> {
   const product: any = await prisma.product.findUnique({
     where: { id: productId },
-    include: { category: true },
+    include: { showcase: true },
   });
-  if (!product || !product.categoryId) return [];
+  if (!product || !product.showcaseId) return [];
   const related = await prisma.product.findMany({
     where: {
-      categoryId: product.categoryId,
+      showcaseId: product.showcaseId,
       NOT: { id: productId },
     },
     include: {
       images: true,
-      category: true,
+      showcase: true,
       shop: true,
     },
     take: 4,
@@ -83,7 +83,7 @@ async function getRelatedProducts(productId: number): Promise<DBProduct[]> {
     description: product.description,
     price: Number(product.price),
     images: product.images?.map((image: any) => image.imageUrl) || [],
-    category: product.category?.name ?? null,
+    showcase: product.showcase?.name ?? null,
     shopName: product.shop?.shopName ?? '',
   }));
 }
@@ -103,7 +103,7 @@ async function getProductById(id: string | number): Promise<DBProduct | undefine
     where: { id: productId },
     include: {
       images: true,
-      category: true,
+      showcase: true,
       shop: true,
     },
   });
@@ -114,7 +114,7 @@ async function getProductById(id: string | number): Promise<DBProduct | undefine
     description: product.description,
     price: Number(product.price),
     images: product.images?.map((image: any) => image.imageUrl) || [],
-    category: product.category?.name ?? null,
+    showcase: product.showcase?.name ?? null,
     shopName: product.shop?.shopName ?? '',
   };
 }

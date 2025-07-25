@@ -78,7 +78,8 @@ async function ProductPage({ params }: ProductPageProps) {
     description: product.description,
     price: product.price,
     images: product.images,
-    category: product.category ?? '',
+    showcase: product.showcase ?? '',
+    category: product.showcase ?? '',
     relatedProducts: [],
     shopName: product.shopName,
   };
@@ -101,7 +102,7 @@ async function ProductPage({ params }: ProductPageProps) {
         <div className="md:col-span-1 space-y-6">
           <div className="space-y-2">
             <h1 className="text-4xl lg:text-5xl font-bold font-headline">{product.name}</h1>
-            <p className="text-muted-foreground text-lg">{product.category}</p>
+            <p className="text-muted-foreground text-lg">{product.showcase}</p>
             <p className="text-sm text-muted-foreground">Shop: {product.shopName}</p>
           </div>
           <p className="text-3xl font-bold text-primary">{formatPrice(product.price)}</p>

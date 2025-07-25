@@ -56,6 +56,9 @@ export default async function Home() {
                         <div className="absolute bottom-0 left-0 p-8 text-white">
                           <h2 className="text-3xl md:text-5xl font-headline font-bold">{product.name}</h2>
                           <p className="text-lg mt-2 hidden md:block max-w-lg">{product.description}</p>
+                          {product.showcase && (
+                            <span className="text-sm font-semibold bg-white/20 rounded px-2 py-1 mr-2">{product.showcase}</span>
+                          )}
                           <Button size="lg" className="mt-4">Shop Now</Button>
                         </div>
                       </div>

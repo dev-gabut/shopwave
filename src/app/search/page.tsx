@@ -29,7 +29,7 @@ function SearchResults() {
         const productDescription = dbProduct.description;
         const productPrice = dbProduct.price;
         const productImages = dbProduct.images;
-        const productCategory = dbProduct.category ?? '';
+        const productShowcase = dbProduct.showcase ?? '';
         const productRelatedProducts: string[] = [];
         const productShopName = dbProduct.shopName ?? '';
         return {
@@ -38,7 +38,8 @@ function SearchResults() {
           description: productDescription,
           price: productPrice,
           images: productImages,
-          category: productCategory,
+          showcase: productShowcase,
+          category: productShowcase,
           relatedProducts: productRelatedProducts,
           shopName: productShopName,
         };

@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Minus, Plus, Trash2, CreditCard } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 
 const checkoutSchema = z.object({
@@ -36,11 +37,14 @@ const checkoutSchema = z.object({
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
   const { user, loading } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+
+  const { cartItems, cartTotal, clearCart, updateQuantity, removeFromCart } = useCart();
 
   useEffect(() => {
     if (!loading && !user) {
@@ -48,11 +52,51 @@ export default function CheckoutPage() {
     }
   }, [user, loading, router]);
 
-
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: { email: user?.email || '', firstName: '', lastName: '', address: '', city: '', postalCode: '', country: '', cardName: '', cardNumber: '', cardExpiry: '', cardCvc: '' },
   });
+
+  // Fetch user addresses on mount
+  useEffect(() => {
+    async function fetchAddresses() {
+      if (user?.id) {
+        try {
+          const res = await fetch('/api/user-addresses', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id }),
+          });
+          const result = await res.json();
+          if (Array.isArray(result.addresses)) {
+            setAddresses(result.addresses);
+            // Select default address if available
+            if (result.addresses.length > 0) {
+              setSelectedAddressId(result.addresses[0].id.toString());
+            }
+          }
+        } catch (err) {
+          console.log('Error fetching addresses:', err);
+        }
+      }
+    }
+    fetchAddresses();
+  }, [user]);
+
+  // Autofill form fields when address selection changes
+  useEffect(() => {
+    if (selectedAddressId && addresses.length > 0) {
+      const addr = addresses.find(a => a.id.toString() === selectedAddressId);
+      if (addr) {
+        form.setValue('firstName', addr.firstName || '');
+        form.setValue('lastName', addr.lastName || '');
+        form.setValue('address', addr.address || '');
+        form.setValue('city', addr.city || '');
+        form.setValue('postalCode', addr.postalCode || '');
+        form.setValue('country', addr.country || '');
+      }
+    }
+  }, [selectedAddressId, addresses, form]);
 
   useEffect(() => {
     if (user?.email) {
@@ -74,8 +118,10 @@ export default function CheckoutPage() {
       unit_price: cartItems[0]?.price || 0,
       quantity: cartItems[0]?.quantity || 1,
       shipping_cost: 25000, // You can make this dynamic
-      insurance_cost: 0,    // Add logic if you want insurance
+      insurance_cost: 0 // Add logic if you want insurance
     };
+
+    console.log('Pay button clicked. Payload:', payload);
 
     try {
       const res = await fetch('/api/checkout-payment', {
@@ -84,51 +130,87 @@ export default function CheckoutPage() {
         body: JSON.stringify(payload),
       });
       const result = await res.json();
+      console.log('Midtrans API response:', result);
       if (result.token) {
         // Load Snap.js if not loaded
         if (!window.snap) {
+          console.log('Snap.js not loaded, injecting script...');
           const script = document.createElement('script');
           script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
           script.setAttribute('data-client-key', process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY || '');
           document.body.appendChild(script);
-          script.onload = () => window.snap.pay(result.token, {
-            onSuccess: () => {
-              toast({ title: "Payment Success!", description: "Thank you for your purchase." });
-              clearCart();
-              router.push('/');
-            },
-            onPending: () => toast({ title: "Payment Pending", description: "Your payment is pending." }),
-            onError: () => toast({ title: "Payment Error", description: "There was an error processing your payment." }),
-            onClose: () => toast({ title: "Payment Cancelled", description: "You closed the payment popup." }),
-          });
+          script.onload = () => {
+            console.log('Snap.js loaded, calling pay with token:', result.token);
+            window.snap.pay(result.token, {
+              onSuccess: (res) => {
+                console.log('Midtrans Success:', res);
+                toast({ title: "Payment Success!", description: "Thank you for your purchase." });
+                clearCart();
+                router.push('/');
+              },
+              onPending: (res) => {
+                console.log('Midtrans Pending:', res);
+                toast({ title: "Payment Pending", description: "Your payment is pending." });
+              },
+              onError: (res) => {
+                console.log('Midtrans Error:', res);
+                toast({ title: "Payment Error", description: "There was an error processing your payment." });
+              },
+              onClose: () => {
+                console.log('Midtrans Closed');
+                toast({ title: "Payment Cancelled", description: "You closed the payment popup." });
+              },
+            });
+          };
         } else {
+          console.log('Snap.js already loaded, calling pay with token:', result.token);
           window.snap.pay(result.token, {
-            onSuccess: () => {
+            onSuccess: (res) => {
+              console.log('Midtrans Success:', res);
               toast({ title: "Payment Success!", description: "Thank you for your purchase." });
               clearCart();
               router.push('/');
             },
-            onPending: () => toast({ title: "Payment Pending", description: "Your payment is pending." }),
-            onError: () => toast({ title: "Payment Error", description: "There was an error processing your payment." }),
-            onClose: () => toast({ title: "Payment Cancelled", description: "You closed the payment popup." }),
+            onPending: (res) => {
+              console.log('Midtrans Pending:', res);
+              toast({ title: "Payment Pending", description: "Your payment is pending." });
+            },
+            onError: (res) => {
+              console.log('Midtrans Error:', res);
+              toast({ title: "Payment Error", description: "There was an error processing your payment." });
+            },
+            onClose: () => {
+              console.log('Midtrans Closed');
+              toast({ title: "Payment Cancelled", description: "You closed the payment popup." });
+            },
           });
         }
       } else {
+        console.log('No token received from Midtrans:', result);
         toast({ title: "Payment Error", description: result.error || "Failed to create transaction." });
       }
     } catch (err: any) {
+      console.log('Error in Midtrans payment:', err);
       toast({ title: "Error", description: err.message });
     } finally {
       setIsSubmitting(false);
     }
   };
   
-  if (loading || !user) {
+  if (loading) {
     return (
-        <div className="flex justify-center items-center h-64">
-            <p>Loading...</p>
-        </div>
-    )
+      <div className="flex justify-center items-center h-64">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <p>Please log in to continue.</p>
+      </div>
+    );
   }
 
   if (cartItems.length === 0 && !isSubmitting) {
@@ -191,26 +273,32 @@ export default function CheckoutPage() {
                 </section>
                 <section className="space-y-4">
                   <h3 className="font-semibold text-lg">Shipping Address</h3>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2">Select Address</label>
+                    <select
+                      className="w-full border rounded px-3 py-2"
+                      value={selectedAddressId || ''}
+                      onChange={e => setSelectedAddressId(e.target.value)}
+                      disabled={addresses.length === 0}
+                    >
+                      {addresses.length === 0 && <option value="">No address found</option>}
+                      {addresses.map(addr => (
+                        <option key={addr.id} value={addr.id}>{addr.label || `${addr.address}, ${addr.city}`}</option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="grid sm:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem> <FormLabel>First Name</FormLabel> <FormControl><Input placeholder="John" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                    <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem> <FormLabel>Last Name</FormLabel> <FormControl><Input placeholder="Doe" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
+                    <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem> <FormLabel>First Name</FormLabel> <FormControl><Input placeholder="John" {...field} disabled /></FormControl> <FormMessage /> </FormItem> )} />
+                    <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem> <FormLabel>Last Name</FormLabel> <FormControl><Input placeholder="Doe" {...field} disabled /></FormControl> <FormMessage /> </FormItem> )} />
                   </div>
-                  <FormField control={form.control} name="address" render={({ field }) => ( <FormItem> <FormLabel>Address</FormLabel> <FormControl><Input placeholder="123 Main St" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
+                  <FormField control={form.control} name="address" render={({ field }) => ( <FormItem> <FormLabel>Address</FormLabel> <FormControl><Input placeholder="123 Main St" {...field} disabled /></FormControl> <FormMessage /> </FormItem> )} />
                   <div className="grid sm:grid-cols-3 gap-4">
-                    <FormField control={form.control} name="city" render={({ field }) => ( <FormItem> <FormLabel>City</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                    <FormField control={form.control} name="postalCode" render={({ field }) => ( <FormItem> <FormLabel>Postal Code</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                    <FormField control={form.control} name="country" render={({ field }) => ( <FormItem> <FormLabel>Country</FormLabel> <FormControl><Input placeholder="USA" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
+                    <FormField control={form.control} name="city" render={({ field }) => ( <FormItem> <FormLabel>City</FormLabel> <FormControl><Input {...field} disabled /></FormControl> <FormMessage /> </FormItem> )} />
+                    <FormField control={form.control} name="postalCode" render={({ field }) => ( <FormItem> <FormLabel>Postal Code</FormLabel> <FormControl><Input {...field} disabled /></FormControl> <FormMessage /> </FormItem> )} />
+                    <FormField control={form.control} name="country" render={({ field }) => ( <FormItem> <FormLabel>Country</FormLabel> <FormControl><Input placeholder="USA" {...field} disabled /></FormControl> <FormMessage /> </FormItem> )} />
                   </div>
                 </section>
-                 <section className="space-y-4">
-                    <h3 className="font-semibold text-lg">Payment Details</h3>
-                     <FormField control={form.control} name="cardName" render={({ field }) => ( <FormItem> <FormLabel>Name on Card</FormLabel> <FormControl><Input placeholder="John M Doe" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                     <FormField control={form.control} name="cardNumber" render={({ field }) => ( <FormItem> <FormLabel>Card Number</FormLabel> <FormControl><div className="relative"><CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /><Input className="pl-10" placeholder="0000 0000 0000 0000" {...field} /></div></FormControl> <FormMessage /> </FormItem> )} />
-                    <div className="grid sm:grid-cols-2 gap-4">
-                        <FormField control={form.control} name="cardExpiry" render={({ field }) => ( <FormItem> <FormLabel>Expiration (MM/YY)</FormLabel> <FormControl><Input placeholder="MM/YY" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                        <FormField control={form.control} name="cardCvc" render={({ field }) => ( <FormItem> <FormLabel>CVC</FormLabel> <FormControl><Input placeholder="123" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                    </div>
-                </section>
+                {/* Payment details removed for Midtrans integration */}
                 <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
                   {isSubmitting ? 'Placing Order...' : `Pay ${formatPrice(cartTotal)}`}
                 </Button>
