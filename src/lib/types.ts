@@ -3,10 +3,12 @@ export interface Product {
   name: string;
   slug: string;
   description: string;
+  slug: string;
   price: number;
   images: string[];
-  category: string;
+  showcase?: string;
   relatedProducts: string[];
+  shopName: string;
 }
 
 export interface CartItem {
