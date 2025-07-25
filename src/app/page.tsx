@@ -4,7 +4,6 @@
 // *************** IMPORT MODULE ***************
 import { getProducts } from '@/models/product';
 import { ProductCard } from '@/components/product-card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { Product } from '@/lib/types';
 import {
