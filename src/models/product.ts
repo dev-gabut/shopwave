@@ -12,7 +12,7 @@ export async function getProductsByShopId(shopId: number): Promise<Product[]> {
 return prismaProducts.map((p) => ({
 	id: p.id?.toString() ?? '',
 	name: p.name ?? '',
-	slug: (p as any).slug ?? '',
+	slug: '', // slug is empty
 	description: p.description ?? '',
 	price: Number(p.price ?? 0),
 	images: Array.isArray(p.images) ? p.images.map((img) => img.imageUrl) : [],
@@ -148,7 +148,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 }
 
 export async function getRelatedProducts(productId: string): Promise<Product[]> {
-	const product: any = await prisma.product.findUnique({
+	const product = await prisma.product.findUnique({
 		where: { id: Number(productId) },
 		include: { images: true, shop: true, showcase: true },
 	});
