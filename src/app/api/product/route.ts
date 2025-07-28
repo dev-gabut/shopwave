@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     if (isNaN(stock) || stock < 0) {
       return new Response(JSON.stringify({ error: 'Valid stock is required' }), { status: 400 });
     }
-    if (!category || !VALID_CATEGORIES.includes(category as any)) {
+    if (!category || !VALID_CATEGORIES.includes(category as Category)) {
       return new Response(JSON.stringify({ error: 'Valid category is required' }), { status: 400 });
     }
 
@@ -101,22 +101,19 @@ export async function POST(req: Request) {
     }
 
     // Save product to DB
-    try {
-      const product = await createProduct({
-        shopId,
-        name,
-        description,
-        price,
-        stock,
-        category: category as Category,  // Cast to Category type
-        showcaseId,
-        images: uploadedImages,
-      });
-      return new Response(JSON.stringify({ product }), { status: 201 });
-    } catch (err: any) {
-      return new Response(JSON.stringify({ error: 'Failed to create product', details: err.message }), { status: 500 });
-    }
-  } catch (err: any) {
-    return new Response(JSON.stringify({ error: 'Internal server error', details: err.message }), { status: 500 });
+    const product = await createProduct({
+      shopId,
+      name,
+      description,
+      price,
+      stock,
+      category: category as Category,
+      showcaseId,
+      images: uploadedImages,
+    });
+    return new Response(JSON.stringify({ product }), { status: 201 });
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: 'Internal server error', details: errorMessage }), { status: 500 });
   }
 }
