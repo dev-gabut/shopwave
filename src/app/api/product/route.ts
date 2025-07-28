@@ -1,5 +1,3 @@
-
-
 import { createClient } from '@supabase/supabase-js';
 import { createProduct } from '@/models/product';
 import { Category } from '@prisma/client';
@@ -107,10 +105,12 @@ export async function POST(req: Request) {
         images: uploadedImages,
       });
       return new Response(JSON.stringify({ product }), { status: 201 });
-    } catch {
+    } catch (error) {
+      console.error('Product creation error:', error);
       return new Response(JSON.stringify({ error: 'Failed to create product' }), { status: 500 });
     }
-  } catch {
+  } catch (error) {
+    console.error('Server error:', error);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
   }
 }
