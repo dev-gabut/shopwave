@@ -134,7 +134,7 @@ export async function getProducts(query?: string): Promise<Product[]> {
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  // Simulate network delay
+  // Simulate network delay/
   await new Promise(resolve => setTimeout(resolve, 500));
   
   const product = await prisma.product.findUnique({
