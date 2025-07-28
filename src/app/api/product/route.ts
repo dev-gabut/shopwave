@@ -107,7 +107,8 @@ export async function POST(req: Request) {
         images: uploadedImages,
       });
       return new Response(JSON.stringify({ product }), { status: 201 });
-    } catch (createProductError) {  return new Response(JSON.stringify({ error: 'Failed to create product' }), { status: 500 });
+    } catch {
+      return new Response(JSON.stringify({ error: 'Failed to create product' }), { status: 500 });
     }
   } catch {
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });

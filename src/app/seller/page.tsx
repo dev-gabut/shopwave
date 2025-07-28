@@ -81,7 +81,14 @@ export default function SellerDashboard() {
   const { toast } = useToast();
   
   // State variables
-  const [shopData, setShopData] = useState<any>(null);
+  type Shop = {
+    id: number;
+    shopName: string;
+    description?: string;
+    imageUrl?: string | null;
+    // add other fields as needed
+  };
+  const [shopData, setShopData] = useState<Shop | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [showcases, setShowcases] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
