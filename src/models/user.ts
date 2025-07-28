@@ -1,9 +1,20 @@
-import { PrismaClient, Address } from '@prisma/client'; // Import Address type
+import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'shopwave-secret';
+
+// Define the Address type explicitly
+type Address = {
+  id: number;
+  label: string;
+  address: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  isDefault: boolean;
+};
 
 export async function loginUser({ email, password }: { email: string; password: string }) {
   const dbUser = await prisma.user.findUnique({
@@ -24,7 +35,6 @@ export async function loginUser({ email, password }: { email: string; password: 
     JWT_SECRET
   );
 
-  // Explicitly type the address parameter
   return {
     id: String(dbUser.id),
     email: dbUser.email,
