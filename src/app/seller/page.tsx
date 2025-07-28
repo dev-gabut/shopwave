@@ -90,7 +90,7 @@ export default function SellerDashboard() {
   };
   const [shopData, setShopData] = useState<Shop | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
-  const [showcases, setShowcases] = useState<any[]>([]);
+  const [showcases, setShowcases] = useState<Showcase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterType, setFilterType] = useState<'all' | 'category' | 'showcase'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -122,12 +122,20 @@ export default function SellerDashboard() {
           
           // Get products by shop ID
           const productsRaw = await getProductsByShopId(shop.id);
-          const products = productsRaw.map((p: any) => ({
+          const products = productsRaw.map(p => ({
             ...p,
             id: typeof p.id === 'string' ? Number(p.id) : p.id,
-            showcase: p.showcase && typeof p.showcase.id === 'string'
-              ? { ...p.showcase, id: Number(p.showcase.id) }
-              : p.showcase
+            showcase: p.showcase && typeof p.showcase === 'object' && 'id' in p.showcase
+              ? ((p.showcase as Showcase).name
+                  ? { 
+                      id: Number((p.showcase as Showcase).id), 
+                      name: String((p.showcase as Showcase).name), 
+                      productCount: (p.showcase as Showcase).productCount 
+                    }
+                  : null)
+              : null,
+            stock: typeof p.stock === 'number' ? p.stock : 0, // Ensure stock is always a number
+            category: typeof p.category === 'string' ? p.category : 'OTHER' // Ensure category is always a string
           }));
           setProducts(products);
           
