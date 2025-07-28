@@ -16,6 +16,8 @@ const VALID_CATEGORIES = [
   'OTHER',
 ] as const;
 
+type Category = typeof VALID_CATEGORIES[number];
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
