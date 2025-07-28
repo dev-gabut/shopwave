@@ -1,11 +1,10 @@
-
-
 import { createClient } from '@supabase/supabase-js';
 import { createProduct } from '@/models/product';
-import { Category } from '@prisma/client';
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
-const VALID_CATEGORIES: Category[] = [
+
+// Define categories directly since Prisma enum isn't available
+const VALID_CATEGORIES = [
   'ELECTRONICS',
   'FASHION',
   'FOOD',
@@ -15,11 +14,12 @@ const VALID_CATEGORIES: Category[] = [
   'SPORTS',
   'BOOKS',
   'OTHER',
-];
+] as const;
 
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
+    
     // Extract fields
     const shopId = Number(formData.get('shopId'));
     const name = String(formData.get('name') ?? '').trim();
@@ -28,6 +28,7 @@ export async function POST(req: Request) {
     const stock = Number(formData.get('stock'));
     const category = String(formData.get('category'));
     const showcaseIdRaw = formData.get('showcaseId');
+    
     let showcaseId: number | null = null;
     if (showcaseIdRaw !== null && showcaseIdRaw !== undefined && showcaseIdRaw !== '') {
       const parsed = Number(showcaseIdRaw);
@@ -50,18 +51,18 @@ export async function POST(req: Request) {
     if (isNaN(stock) || stock < 0) {
       return new Response(JSON.stringify({ error: 'Valid stock is required' }), { status: 400 });
     }
-    if (!category || !VALID_CATEGORIES.includes(category as Category)) {
+    if (!category || !VALID_CATEGORIES.includes(category as any)) {
       return new Response(JSON.stringify({ error: 'Valid category is required' }), { status: 400 });
     }
 
     // Handle image uploads
     const images: File[] = [];
-    for (const entry of formData.entries()) {
-      const [key, value] = entry;
+    formData.forEach((value, key) => {
       if (key === 'images' && value instanceof File && value.size > 0) {
         images.push(value);
       }
-    }
+    });
+    
     if (images.length === 0) {
       return new Response(JSON.stringify({ error: 'At least one product image is required' }), { status: 400 });
     }
@@ -71,16 +72,19 @@ export async function POST(req: Request) {
       const file = images[i];
       const arrayBuffer = await file.arrayBuffer();
       const fileBuffer = Buffer.from(arrayBuffer);
-      const fileName = `products/${Date.now()}_${i}_${file.name}`;
+      const fileName = `products/${Date.now()}_${i}_${file.name.replace(/\s+/g, '_')}`;
+      
       const { data, error } = await supabase.storage
         .from('bucketimage')
         .upload(fileName, fileBuffer, {
           contentType: file.type,
           upsert: true,
         });
+      
       if (error) {
         return new Response(JSON.stringify({ error: `Image upload failed: ${error.message}` }), { status: 500 });
       }
+      
       if (data) {
         const publicUrlRes = supabase.storage.from('bucketimage').getPublicUrl(data.path);
         uploadedImages.push({
@@ -102,15 +106,15 @@ export async function POST(req: Request) {
         description,
         price,
         stock,
-        category: category as Category,
+        category: category as Category,  // Cast to Category type
         showcaseId,
         images: uploadedImages,
       });
       return new Response(JSON.stringify({ product }), { status: 201 });
-    } catch {
-      return new Response(JSON.stringify({ error: 'Failed to create product' }), { status: 500 });
+    } catch (err: any) {
+      return new Response(JSON.stringify({ error: 'Failed to create product', details: err.message }), { status: 500 });
     }
-  } catch {
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: 'Internal server error', details: err.message }), { status: 500 });
   }
 }
