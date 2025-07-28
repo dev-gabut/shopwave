@@ -19,20 +19,20 @@ export async function getProductsByShopId(shopId: number): Promise<Product[]> {
 	where: { shopId },
 	include: { images: true, shop: true, showcase: true },
   });
-return prismaProducts.map((p) => ({
+return prismaProducts.map((p: any) => ({
 	id: p.id?.toString() ?? '',
 	name: p.name ?? '',
 	slug: '', // slug is empty
 	description: p.description ?? '',
 	price: Number(p.price ?? 0),
-	images: Array.isArray(p.images) ? p.images.map((img) => img.imageUrl) : [],
+	images: Array.isArray(p.images) ? p.images.map((img: { imageUrl: string }) => img.imageUrl) : [],
 	relatedProducts: [],
 	shopName: p.shop?.shopName ?? '',
 	showcase: p.showcase?.name ?? '',
 	category: p.category ?? '',
 	stock: p.stock ?? 0,
 	showcaseId: p.showcaseId ?? null,
-}));
+  }));
 }
 
 
