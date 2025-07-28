@@ -1,4 +1,14 @@
-import type { Category } from '@prisma/client';
+// Category type matching Prisma enum
+export type Category =
+  | 'ELECTRONICS'
+  | 'FASHION'
+  | 'FOOD'
+  | 'BEAUTY'
+  | 'HOME'
+  | 'TOYS'
+  | 'SPORTS'
+  | 'BOOKS'
+  | 'OTHER';
 import { prisma } from '@/lib/prisma';
 import type { Product } from '../lib/types';
 export type { Product } from '@/lib/types';
