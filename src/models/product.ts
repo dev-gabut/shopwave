@@ -1,14 +1,4 @@
-// Category type matching Prisma enum
-export type Category =
-  | 'ELECTRONICS'
-  | 'FASHION'
-  | 'FOOD'
-  | 'BEAUTY'
-  | 'HOME'
-  | 'TOYS'
-  | 'SPORTS'
-  | 'BOOKS'
-  | 'OTHER';
+import { Category } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type { Product } from '../lib/types';
 export type { Product } from '@/lib/types';
@@ -19,13 +9,13 @@ export async function getProductsByShopId(shopId: number): Promise<Product[]> {
 	where: { shopId },
 	include: { images: true, shop: true, showcase: true },
   });
-return prismaProducts.map((p: any) => ({
+  return prismaProducts.map((p) => ({
 	id: p.id?.toString() ?? '',
 	name: p.name ?? '',
 	slug: '', // slug is empty
 	description: p.description ?? '',
 	price: Number(p.price ?? 0),
-	images: Array.isArray(p.images) ? p.images.map((img: { imageUrl: string }) => img.imageUrl) : [],
+	images: Array.isArray(p.images) ? p.images.map((img) => img.imageUrl) : [],
 	relatedProducts: [],
 	shopName: p.shop?.shopName ?? '',
 	showcase: p.showcase?.name ?? '',
