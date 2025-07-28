@@ -1,3 +1,4 @@
+//imports
 import { NextRequest, NextResponse } from 'next/server';
 import { signup } from '@/server/controllers/authControllers';
 import { prisma } from '@/lib/prisma'; 
