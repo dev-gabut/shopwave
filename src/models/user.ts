@@ -1,7 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Address } from '@prisma/client'; // Import Address type
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'shopwave-secret';
@@ -25,11 +24,12 @@ export async function loginUser({ email, password }: { email: string; password: 
     JWT_SECRET
   );
 
+  // Explicitly type the address parameter
   return {
     id: String(dbUser.id),
     email: dbUser.email,
     role: dbUser.role.toLowerCase(),
-    addresses: dbUser.addresses.map(address => ({
+    addresses: dbUser.addresses.map((address: Address) => ({
       id: String(address.id),
       label: address.label,
       address: address.address,
