@@ -10,7 +10,7 @@ export type Category =
   | 'BOOKS'
   | 'OTHER';
 
-import { Prisma, Product as PrismaProduct, ProductImage, Shop, Showcase } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type { Product } from '../lib/types';
 export type { Product } from '@/lib/types';
@@ -26,11 +26,13 @@ declare module '../lib/types' {
 }
 
 // Define a type for Prisma product with relations
-type ProductWithRelations = PrismaProduct & {
-  images: ProductImage[];
-  shop: Shop;
-  showcase: Showcase | null;
-};
+type ProductWithRelations = Prisma.ProductGetPayload<{
+  include: {
+    images: true;
+    shop: true;
+    showcase: true;
+  };
+}>;
 
 // Helper function to map Prisma product to our Product type
 function mapToProduct(p: ProductWithRelations): Product {
@@ -61,7 +63,7 @@ export async function getProductsByShopId(shopId: number): Promise<Product[]> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return (prismaProducts as ProductWithRelations[]).map(mapToProduct);
+  return prismaProducts.map(p => mapToProduct(p as ProductWithRelations));
 }
 
 export type CreateProductInput = {
@@ -130,11 +132,11 @@ export async function getProducts(query?: string): Promise<Product[]> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return (prismaProducts as ProductWithRelations[]).map(mapToProduct);
+  return prismaProducts.map(p => mapToProduct(p as ProductWithRelations));
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
-  // Simulate network delay/
+  // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
   const product = await prisma.product.findUnique({
@@ -177,5 +179,5 @@ export async function getRelatedProducts(productId: string): Promise<Product[]> 
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  return (relatedProducts as ProductWithRelations[]).map(mapToProduct);
+  return relatedProducts.map(p => mapToProduct(p as ProductWithRelations));
 }
