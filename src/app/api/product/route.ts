@@ -1,6 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
 import { createProduct } from '@/models/product';
-import { Category } from '@prisma/client';
+
+// Define Category type to match your Prisma schema
+type Category = 
+  | 'ELECTRONICS'
+  | 'FASHION'
+  | 'FOOD'
+  | 'BEAUTY'
+  | 'HOME'
+  | 'TOYS'
+  | 'SPORTS'
+  | 'BOOKS'
+  | 'OTHER';
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 const VALID_CATEGORIES: Category[] = [
