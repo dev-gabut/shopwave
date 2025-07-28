@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { createProduct } from '@/models/product';
+import { prisma } from '@/lib/prisma'; 
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 
@@ -20,6 +21,9 @@ type Category = typeof VALID_CATEGORIES[number];
 
 export async function POST(req: Request) {
   try {
+    // Ensure Prisma is connected
+    await prisma.$connect();
+
     const formData = await req.formData();
     
     // Extract fields
@@ -111,9 +115,13 @@ export async function POST(req: Request) {
       showcaseId,
       images: uploadedImages,
     });
+    
     return new Response(JSON.stringify({ product }), { status: 201 });
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     return new Response(JSON.stringify({ error: 'Internal server error', details: errorMessage }), { status: 500 });
+  } finally {
+    // Disconnect Prisma client
+    await prisma.$disconnect();
   }
 }
