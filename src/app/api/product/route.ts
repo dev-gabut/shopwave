@@ -1,17 +1,8 @@
+
+
 import { createClient } from '@supabase/supabase-js';
 import { createProduct } from '@/models/product';
-
-// Define Category type to match your Prisma schema
-type Category = 
-  | 'ELECTRONICS'
-  | 'FASHION'
-  | 'FOOD'
-  | 'BEAUTY'
-  | 'HOME'
-  | 'TOYS'
-  | 'SPORTS'
-  | 'BOOKS'
-  | 'OTHER';
+import { Category } from '@prisma/client';
 
 const supabase = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!);
 const VALID_CATEGORIES: Category[] = [
@@ -116,12 +107,10 @@ export async function POST(req: Request) {
         images: uploadedImages,
       });
       return new Response(JSON.stringify({ product }), { status: 201 });
-    } catch (error) {
-      console.error('Product creation error:', error);
+    } catch {
       return new Response(JSON.stringify({ error: 'Failed to create product' }), { status: 500 });
     }
-  } catch (error) {
-    console.error('Server error:', error);
+  } catch {
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
   }
 }
