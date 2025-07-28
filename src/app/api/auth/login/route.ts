@@ -1,4 +1,4 @@
-//import
+//imports
 import { NextRequest, NextResponse } from 'next/server';
 import { loginUser } from '@/models/user';
 import { prisma } from '@/lib/prisma'; 
