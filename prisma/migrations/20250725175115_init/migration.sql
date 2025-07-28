@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "Category" AS ENUM ('ELECTRONICS', 'FASHION', 'FOOD', 'BEAUTY', 'HOME', 'TOYS', 'SPORTS', 'BOOKS', 'OTHER');
+
+-- CreateEnum
 CREATE TYPE "Role" AS ENUM ('BUYER', 'SELLER', 'ADMIN');
 
 -- CreateEnum
@@ -42,18 +45,19 @@ CREATE TABLE "Shop" (
     "userId" INTEGER NOT NULL,
     "shopName" TEXT NOT NULL,
     "description" TEXT NOT NULL,
+    "imageUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Shop_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Category" (
+CREATE TABLE "Showcase" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "parentId" INTEGER,
 
-    CONSTRAINT "Category_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Showcase_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -64,7 +68,8 @@ CREATE TABLE "Product" (
     "description" TEXT NOT NULL,
     "price" DECIMAL(12,2) NOT NULL,
     "stock" INTEGER NOT NULL,
-    "categoryId" INTEGER,
+    "category" "Category" NOT NULL,
+    "showcaseId" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
@@ -166,13 +171,13 @@ ALTER TABLE "Address" ADD CONSTRAINT "Address_userId_fkey" FOREIGN KEY ("userId"
 ALTER TABLE "Shop" ADD CONSTRAINT "Shop_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Category" ADD CONSTRAINT "Category_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Showcase" ADD CONSTRAINT "Showcase_parentId_fkey" FOREIGN KEY ("parentId") REFERENCES "Showcase"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Product" ADD CONSTRAINT "Product_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Product" ADD CONSTRAINT "Product_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "Product" ADD CONSTRAINT "Product_showcaseId_fkey" FOREIGN KEY ("showcaseId") REFERENCES "Showcase"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ProductImage" ADD CONSTRAINT "ProductImage_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

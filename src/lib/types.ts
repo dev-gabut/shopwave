@@ -8,6 +8,8 @@ export interface Product {
   showcase?: string;
   relatedProducts: string[];
   shopName: string;
+  category?: string;
+  stock?: number;
 }
 
 export interface CartItem {

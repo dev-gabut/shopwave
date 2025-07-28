@@ -42,9 +42,9 @@ model Shop {
   userId      Int      @unique
   shopName    String
   description String
+  imageUrl    String?  
   createdAt   DateTime @default(now())
-
-  products Product[]
+  products    Product[]
 }
 
 model Showcase {

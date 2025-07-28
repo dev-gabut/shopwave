@@ -3,7 +3,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getProducts } from '@/lib/products';
+import { getProducts } from '@/models/product';
 import type { Product } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
 import { ProductSearch } from '@/components/product-search';
@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 function SearchResults() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const initialQuery = searchParams.get('q') || '';
+  const initialQuery = searchParams?.get('q') || '';
   
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState(initialQuery);

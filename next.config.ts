@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    domains: [
+      'www.static-src.com',
+      'zvcakriarjyfojikkhzm.supabase.co', 
+    ],
   },
 };
 

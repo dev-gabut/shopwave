@@ -1,126 +1,174 @@
+import { Category } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
 import type { Product } from '../lib/types';
+export type { Product } from '@/lib/types';
 
-const products: Product[] = [
-	{
-		id: '1',
-		name: 'Classic Leather Tote',
-		slug: 'classic-leather-tote',
-		description:
-			'A timeless tote crafted from genuine leather. Spacious enough for your essentials, with a sleek design that complements any outfit. Features an interior zip pocket and a magnetic closure.',
-		price: 189.99,
-		images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'],
-		relatedProducts: ['2', '8'],
-        shopName: 'ShopWave',
+// Get products by shopId
+export async function getProductsByShopId(shopId: number): Promise<Product[]> {
+  const prismaProducts = await prisma.product.findMany({
+	where: { shopId },
+	include: { images: true, shop: true, showcase: true },
+  });
+  return prismaProducts.map((p: any) => ({
+	id: p.id?.toString() ?? '',
+	name: p.name ?? '',
+	slug: p.slug ?? '',
+	description: p.description ?? '',
+	price: Number(p.price ?? 0),
+	images: Array.isArray(p.images) ? p.images.map((img: any) => img.imageUrl) : [],
+	relatedProducts: [],
+	shopName: p.shop?.shopName ?? '',
+	showcase: p.showcase?.name ?? '',
+	category: p.category ?? '',
+	stock: p.stock ?? 0,
+	showcaseId: p.showcaseId ?? null,
+  }));
+}
+
+
+
+export type CreateProductInput = {
+  shopId: number;
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  category: Category;
+  showcaseId?: number | null;
+  images: { imageUrl: string; isPrimary?: boolean }[];
+};
+
+export async function createProduct({ shopId, name, description, price, stock, category, showcaseId, images }: {
+  shopId: number;
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  category: Category;
+  showcaseId?: number | null;
+  images: { imageUrl: string; isPrimary?: boolean }[];
+}) {
+  // Validate shop exists
+  const shop = await prisma.shop.findUnique({ where: { id: shopId } });
+  if (!shop) throw new Error('Shop not found');
+
+  // Create product
+  const product = await prisma.product.create({
+	data: {
+	  shopId,
+	  name,
+	  description,
+	  price,
+	  stock,
+	  category,
+	  showcaseId: showcaseId ?? null,
+	  images: {
+		create: images.map((img) => ({
+		  imageUrl: img.imageUrl,
+		  isPrimary: !!img.isPrimary,
+		})),
+	  },
 	},
-	{
-		id: '2',
-		name: 'Modern Aviator Sunglasses',
-		slug: 'modern-aviator-sunglasses',
-		description:
-			'Protect your eyes in style with these modern aviator sunglasses. Featuring a lightweight metal frame and polarized lenses, they offer 100% UV protection and a comfortable fit.',
-		price: 75.0,
-		images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'],
-		relatedProducts: ['5', '6'],
-        shopName: 'ShopWave',
+	include: {
+	  images: true,
+	  shop: true,
+	  showcase: true,
 	},
-	{
-		id: '3',
-		name: 'Silk Blend Scarf',
-		slug: 'silk-blend-scarf',
-		description:
-			'Add a touch of elegance to your look with this luxurious silk blend scarf. The soft, lightweight fabric features a vibrant, artistic print, making it a versatile accessory for any season.',
-		price: 49.5,
-		images: ['https://placehold.co/600x600.png'],
-		relatedProducts: ['1', '7'],
-        shopName: 'ShopWave',
-	},
-	{
-		id: '4',
-		name: 'Chronograph Watch',
-		slug: 'chronograph-watch',
-		description:
-			"A sophisticated chronograph watch with a stainless steel case and a genuine leather strap. Water-resistant and featuring a date display, it's the perfect blend of function and style.",
-		price: 250.0,
-		images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'],
-		relatedProducts: ['2', '6'],
-        shopName: 'ShopWave',
-	},
-	{
-		id: '5',
-		name: 'Minimalist Canvas Backpack',
-		slug: 'minimalist-canvas-backpack',
-		description:
-			'A durable and stylish canvas backpack designed for daily use. With a padded laptop sleeve and multiple compartments, it keeps your belongings organized and secure on the go.',
-		price: 89.99,
-		images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'],
-		relatedProducts: ['1', '8'],
-        shopName: 'ShopWave',
-	},
-	{
-		id: '6',
-		name: 'Suede Ankle Boots',
-		slug: 'suede-ankle-boots',
-		description:
-			'Step out in style with these chic suede ankle boots. A comfortable block heel and cushioned insole make them perfect for all-day wear, while the side zipper allows for easy on and off.',
-		price: 120.0,
-		images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'],
-		relatedProducts: ['3', '7'],
-        shopName: 'ShopWave',
-	},
-	{
-		id: '7',
-		name: 'Denim Trucker Jacket',
-		slug: 'denim-trucker-jacket',
-		description:
-			'A timeless denim jacket that belongs in every wardrobe. Made from premium, non-stretch denim, it features a classic fit and button-front closure. Perfect for layering over any outfit.',
-		price: 98.0,
-		images: ['https://placehold.co/600x600.png'],
-		relatedProducts: ['3', '6'],
-        shopName: 'ShopWave',
-	},
-	{
-		id: '8',
-		name: 'Cashmere Crewneck Sweater',
-		slug: 'cashmere-crewneck-sweater',
-		description:
-			'Indulge in the unparalleled softness of our 100% cashmere crewneck sweater. This versatile piece is lightweight yet warm, making it an essential layer for cooler weather.',
-		price: 150.0,
-		images: ['https://placehold.co/600x600.png', 'https://placehold.co/600x600.png'],
-		relatedProducts: ['1', '4'],
-        shopName: 'ShopWave',
-	},
-];
+  });
+  return product;
+}
+
 
 export async function getProducts(query?: string): Promise<Product[]> {
 	// Simulate network delay
 	await new Promise((resolve) => setTimeout(resolve, 500));
-	if (query) {
-		const lowerCaseQuery = query.toLowerCase();
-		return products.filter((p) => p.name.toLowerCase().includes(lowerCaseQuery) || p.description.toLowerCase().includes(lowerCaseQuery));
-	}
-	return products;
+	const where = query
+		? {
+			OR: [
+				{ name: { contains: query, mode: 'insensitive' as const } },
+				{ description: { contains: query, mode: 'insensitive' as const } },
+			],
+		}
+		: undefined;
+	const prismaProducts = await prisma.product.findMany({
+		where,
+		include: { images: true, shop: true, showcase: true },
+	});
+	return prismaProducts.map((p: any) => ({
+		id: p.id?.toString() ?? '',
+		name: p.name ?? '',
+		slug: p.slug ?? '',
+		description: p.description ?? '',
+		price: Number(p.price ?? 0),
+		images: Array.isArray(p.images) ? p.images.map((img: any) => img.imageUrl) : [],
+		relatedProducts: [],
+		shopName: p.shop?.shopName ?? '',
+	}));
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
 	// Simulate network delay
 	await new Promise((resolve) => setTimeout(resolve, 500));
-	const product = products.find((p) => p.id === id);
-	return product || null;
+	const p: any = await prisma.product.findUnique({
+		where: { id: Number(id) },
+		include: { images: true, shop: true, showcase: true },
+	});
+	if (!p) return null;
+	return {
+		id: p.id?.toString() ?? '',
+		name: p.name ?? '',
+		slug: p.slug ?? '',
+		description: p.description ?? '',
+		price: Number(p.price ?? 0),
+		images: Array.isArray(p.images) ? p.images.map((img: any) => img.imageUrl) : [],
+		relatedProducts: [],
+		shopName: p.shop?.shopName ?? '',
+	};
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
 	// Simulate network delay
 	await new Promise((resolve) => setTimeout(resolve, 500));
-	const product = products.find((p) => p.slug === slug);
-	return product || null;
+	// If 'slug' is not a valid field, fallback to name or id
+	const p: any = await prisma.product.findFirst({
+		where: { name: slug },
+		include: { images: true, shop: true, showcase: true },
+	});
+	if (!p) return null;
+	return {
+		id: p.id?.toString() ?? '',
+		name: p.name ?? '',
+		slug: p.slug ?? '',
+		description: p.description ?? '',
+		price: Number(p.price ?? 0),
+		images: Array.isArray(p.images) ? p.images.map((img: any) => img.imageUrl) : [],
+		relatedProducts: [],
+		shopName: p.shop?.shopName ?? '',
+	};
 }
 
 export async function getRelatedProducts(productId: string): Promise<Product[]> {
-	const product = products.find((p) => p.id === productId);
+	const product: any = await prisma.product.findUnique({
+		where: { id: Number(productId) },
+		include: { images: true, shop: true, showcase: true },
+	});
 	if (!product) return [];
-
-	const related = products.filter((p) => product.relatedProducts.includes(p.id));
-	// Simulate network delay
+	const relatedPrisma = await prisma.product.findMany({
+		where: {
+			category: product.category,
+			id: { not: product.id },
+		},
+		include: { images: true, shop: true, showcase: true },
+	});
 	await new Promise((resolve) => setTimeout(resolve, 500));
-	return related;
+	return relatedPrisma.map((p: any) => ({
+		id: p.id?.toString() ?? '',
+		name: p.name ?? '',
+		slug: p.slug ?? '',
+		description: p.description ?? '',
+		price: Number(p.price ?? 0),
+		images: Array.isArray(p.images) ? p.images.map((img: any) => img.imageUrl) : [],
+		relatedProducts: [],
+		shopName: p.shop?.shopName ?? '',
+	}));
 }

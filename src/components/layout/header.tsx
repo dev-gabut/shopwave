@@ -56,6 +56,11 @@ export function Header() {
             </Link>
           </Button>
           <CartIcon />
+          {user && user.role === 'buyer' && (
+            <Button variant="outline" onClick={() => router.push('/seller')}>
+              Sell
+            </Button>
+          )}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

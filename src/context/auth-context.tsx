@@ -1,12 +1,24 @@
 'use client';
 
-import { createContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useState, ReactNode } from 'react';
+import { loginUser } from '@/models/user';
 
 // This is a mock user object. In a real app, this would come from an auth provider.
+interface Address {
+  id: string;
+  label: string;
+  address: string;
+  city: string;
+  province: string;
+  postalCode: string;
+  isDefault: boolean;
+}
+
 interface User {
   id: string;
   email: string;
-  role: 'customer' | 'seller' | 'admin';
+  role: 'buyer' | 'seller' | 'admin';
+  addresses?: Address[];
 }
 
 interface AuthContextType {
@@ -15,6 +27,7 @@ interface AuthContextType {
   login: (email: string, pass: string) => Promise<void>;
   signup: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser?: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,78 +37,43 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Simulate checking for an existing session
-    const checkSession = () => {
-      try {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (e) {
-        console.error("Failed to parse user from localStorage", e);
-        localStorage.removeItem('user');
-      } finally {
-        setLoading(false);
-      }
-    };
-    checkSession();
-  }, []);
-
+  // Call server-side loginUser for login
   const login = async (email: string, pass: string) => {
-    // In a real app, you'd call your auth provider here.
-    // For now, we'll just check if the user exists in our mock 'database' (localStorage)
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500)); // simulate network delay
-
-    const storedUsers = JSON.parse(localStorage.getItem('users') || '{}');
-    if (storedUsers[email] && storedUsers[email].password === pass) {
-        const loggedInUser: User = { 
-            id: email, 
-            email, 
-            role: storedUsers[email].role || 'customer' 
-        };
-        setUser(loggedInUser);
-        localStorage.setItem('user', JSON.stringify(loggedInUser));
-        setLoading(false);
-    } else {
-        setLoading(false);
-        throw new Error('Invalid credentials');
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password: pass }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+      setUser(data.user);
+    } catch (err) {
+      setLoading(false);
+      throw err;
     }
-  };
-
-  const signup = async (email: string, pass: string) => {
-    // In a real app, you'd call your auth provider here.
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const storedUsers = JSON.parse(localStorage.getItem('users') || '{}');
-    if (storedUsers[email]) {
-        setLoading(false);
-        throw new Error('User already exists');
-    }
-
-    // Hardcode roles for demo purposes
-    let role: User['role'] = 'customer';
-    if (email.toLowerCase() === 'admin@example.com') {
-      role = 'admin';
-    } else if (email.toLowerCase() === 'seller@example.com') {
-      role = 'seller';
-    }
-
-    storedUsers[email] = { password: pass, role: role };
-    localStorage.setItem('users', JSON.stringify(storedUsers));
     setLoading(false);
   };
 
+  // Signup and logout can be left empty or throw errors (since you seed users)
+  const signup = async () => {
+    throw new Error('Signup is disabled. Use seeded users.');
+  };
   const logout = async () => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 200));
     setUser(null);
-    localStorage.removeItem('user');
-    setLoading(false);
+  };
+  const refreshUser = async () => {
+    // Optionally re-fetch user from DB if needed
+    // This should be done via API route, not Prisma in frontend
+    // Placeholder for your friend to implement API-based refresh
+    throw new Error('refreshUser must be handled via API route.');
   };
 
   const value = {
@@ -104,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     signup,
     logout,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
