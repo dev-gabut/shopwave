@@ -126,10 +126,21 @@ export async function getProducts(query?: string): Promise<Product[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
+  // Fixed where clause with proper Prisma types
   const where = query ? {
     OR: [
-      { name: { contains: query, mode: 'insensitive' } },
-      { description: { contains: query, mode: 'insensitive' } },
+      { 
+        name: { 
+          contains: query, 
+          mode: 'insensitive' as const 
+        } 
+      },
+      { 
+        description: { 
+          contains: query, 
+          mode: 'insensitive' as const 
+        } 
+      },
     ],
   } : undefined;
   
