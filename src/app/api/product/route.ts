@@ -66,7 +66,7 @@ export async function POST(req: Request) {
       return new Response(JSON.stringify({ error: 'At least one product image is required' }), { status: 400 });
     }
 
-    let uploadedImages: { imageUrl: string; isPrimary: boolean }[] = [];
+    const uploadedImages: { imageUrl: string; isPrimary: boolean }[] = [];
     for (let i = 0; i < images.length; i++) {
       const file = images[i];
       const arrayBuffer = await file.arrayBuffer();
@@ -107,10 +107,9 @@ export async function POST(req: Request) {
         images: uploadedImages,
       });
       return new Response(JSON.stringify({ product }), { status: 201 });
-    } catch (createProductError: any) {
-      return new Response(JSON.stringify({ error: 'Failed to create product' }), { status: 500 });
+    } catch (createProductError) {  return new Response(JSON.stringify({ error: 'Failed to create product' }), { status: 500 });
     }
-  } catch (error) {
+  } catch {
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500 });
   }
 }
