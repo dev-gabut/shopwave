@@ -9,20 +9,20 @@ export async function getProductsByShopId(shopId: number): Promise<Product[]> {
 	where: { shopId },
 	include: { images: true, shop: true, showcase: true },
   });
-  return prismaProducts.map((p: any) => ({
+return prismaProducts.map((p) => ({
 	id: p.id?.toString() ?? '',
 	name: p.name ?? '',
-	slug: p.slug ?? '',
+	slug: (p as any).slug ?? '',
 	description: p.description ?? '',
 	price: Number(p.price ?? 0),
-	images: Array.isArray(p.images) ? p.images.map((img: any) => img.imageUrl) : [],
+	images: Array.isArray(p.images) ? p.images.map((img) => img.imageUrl) : [],
 	relatedProducts: [],
 	shopName: p.shop?.shopName ?? '',
 	showcase: p.showcase?.name ?? '',
 	category: p.category ?? '',
 	stock: p.stock ?? 0,
 	showcaseId: p.showcaseId ?? null,
-  }));
+}));
 }
 
 
@@ -94,13 +94,13 @@ export async function getProducts(query?: string): Promise<Product[]> {
 		where,
 		include: { images: true, shop: true, showcase: true },
 	});
-	return prismaProducts.map((p: any) => ({
+	return prismaProducts.map((p) => ({
 		id: p.id?.toString() ?? '',
 		name: p.name ?? '',
-		slug: p.slug ?? '',
+		slug: (p as { slug?: string }).slug ?? '',
 		description: p.description ?? '',
 		price: Number(p.price ?? 0),
-		images: Array.isArray(p.images) ? p.images.map((img: any) => img.imageUrl) : [],
+		images: Array.isArray(p.images) ? p.images.map((img) => img.imageUrl) : [],
 		relatedProducts: [],
 		shopName: p.shop?.shopName ?? '',
 	}));
@@ -109,7 +109,7 @@ export async function getProducts(query?: string): Promise<Product[]> {
 export async function getProductById(id: string): Promise<Product | null> {
 	// Simulate network delay
 	await new Promise((resolve) => setTimeout(resolve, 500));
-	const p: any = await prisma.product.findUnique({
+	const p = await prisma.product.findUnique({
 		where: { id: Number(id) },
 		include: { images: true, shop: true, showcase: true },
 	});
@@ -117,10 +117,10 @@ export async function getProductById(id: string): Promise<Product | null> {
 	return {
 		id: p.id?.toString() ?? '',
 		name: p.name ?? '',
-		slug: p.slug ?? '',
+		slug: '', // slug property does not exist, set to empty string or handle appropriately
 		description: p.description ?? '',
 		price: Number(p.price ?? 0),
-		images: Array.isArray(p.images) ? p.images.map((img: any) => img.imageUrl) : [],
+		images: Array.isArray(p.images) ? p.images.map((img) => img.imageUrl) : [],
 		relatedProducts: [],
 		shopName: p.shop?.shopName ?? '',
 	};
@@ -130,7 +130,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 	// Simulate network delay
 	await new Promise((resolve) => setTimeout(resolve, 500));
 	// If 'slug' is not a valid field, fallback to name or id
-	const p: any = await prisma.product.findFirst({
+	const p = await prisma.product.findFirst({
 		where: { name: slug },
 		include: { images: true, shop: true, showcase: true },
 	});
@@ -138,10 +138,10 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 	return {
 		id: p.id?.toString() ?? '',
 		name: p.name ?? '',
-		slug: p.slug ?? '',
+		slug: '', // slug is optional and not present in DB
 		description: p.description ?? '',
 		price: Number(p.price ?? 0),
-		images: Array.isArray(p.images) ? p.images.map((img: any) => img.imageUrl) : [],
+		images: Array.isArray(p.images) ? p.images.map((img) => img.imageUrl) : [],
 		relatedProducts: [],
 		shopName: p.shop?.shopName ?? '',
 	};
@@ -161,13 +161,13 @@ export async function getRelatedProducts(productId: string): Promise<Product[]> 
 		include: { images: true, shop: true, showcase: true },
 	});
 	await new Promise((resolve) => setTimeout(resolve, 500));
-	return relatedPrisma.map((p: any) => ({
+	return relatedPrisma.map((p) => ({
 		id: p.id?.toString() ?? '',
 		name: p.name ?? '',
-		slug: p.slug ?? '',
+		slug: (p as { slug?: string }).slug ?? '',
 		description: p.description ?? '',
 		price: Number(p.price ?? 0),
-		images: Array.isArray(p.images) ? p.images.map((img: any) => img.imageUrl) : [],
+		images: Array.isArray(p.images) ? p.images.map((img) => img.imageUrl) : [],
 		relatedProducts: [],
 		shopName: p.shop?.shopName ?? '',
 	}));
