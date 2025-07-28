@@ -10,7 +10,7 @@ export type Category =
   | 'BOOKS'
   | 'OTHER';
 
-import { Prisma } from '@prisma/client';
+import { Product as PrismaProduct, ProductImage, Shop, Showcase } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type { Product } from '../lib/types';
 export type { Product } from '@/lib/types';
@@ -26,16 +26,14 @@ declare module '../lib/types' {
 }
 
 // Define a type for Prisma product with relations
-type PrismaProductWithRelations = Prisma.ProductGetPayload<{
-  include: {
-    images: true;
-    shop: true;
-    showcase: true;
-  };
-}>;
+type ProductWithRelations = PrismaProduct & {
+  images: ProductImage[];
+  shop: Shop;
+  showcase: Showcase | null;
+};
 
 // Helper function to map Prisma product to our Product type
-function mapToProduct(p: PrismaProductWithRelations): Product {
+function mapToProduct(p: ProductWithRelations): Product {
   const product: Product = {
     id: p.id.toString(),
     name: p.name,
@@ -63,7 +61,7 @@ export async function getProductsByShopId(shopId: number): Promise<Product[]> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return prismaProducts.map(mapToProduct);
+  return (prismaProducts as unknown as ProductWithRelations[]).map(mapToProduct);
 }
 
 export type CreateProductInput = {
@@ -120,7 +118,7 @@ export async function getProducts(query?: string): Promise<Product[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  const where: Prisma.ProductWhereInput = query ? {
+  const where: any = query ? {
     OR: [
       { name: { contains: query, mode: 'insensitive' } },
       { description: { contains: query, mode: 'insensitive' } },
@@ -132,7 +130,7 @@ export async function getProducts(query?: string): Promise<Product[]> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return prismaProducts.map(mapToProduct);
+  return (prismaProducts as unknown as ProductWithRelations[]).map(mapToProduct);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -144,7 +142,7 @@ export async function getProductById(id: string): Promise<Product | null> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return product ? mapToProduct(product) : null;
+  return product ? mapToProduct(product as unknown as ProductWithRelations) : null;
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -157,7 +155,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return product ? mapToProduct(product) : null;
+  return product ? mapToProduct(product as unknown as ProductWithRelations) : null;
 }
 
 export async function getRelatedProducts(productId: string): Promise<Product[]> {
@@ -179,5 +177,5 @@ export async function getRelatedProducts(productId: string): Promise<Product[]> 
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  return relatedProducts.map(mapToProduct);
+  return (relatedProducts as unknown as ProductWithRelations[]).map(mapToProduct);
 }
