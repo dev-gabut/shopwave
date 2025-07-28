@@ -177,7 +177,7 @@ export default function SellerDashboard() {
   };
 
   // Select showcase handler
-  const selectShowcase = (showcase: any) => {
+  const selectShowcase = (showcase: Showcase) => {
     setFilterType('showcase');
     setSelectedShowcase(showcase);
     setSelectedCategory(null);
