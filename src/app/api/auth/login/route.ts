@@ -16,7 +16,8 @@ export async function POST(req: NextRequest) {
     });
     response.headers.set('Set-Cookie', `token=${user.token}; HttpOnly; Path=/; Max-Age=86400`);
     return response;
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 401 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: errorMessage }, { status: 401 });
   }
 }
