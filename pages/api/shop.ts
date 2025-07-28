@@ -130,6 +130,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       try {
         userId = getUserId(fields.userId);
       } catch (userIdError) {
+        console.error('Create shop error:', userIdError)
         return res.status(400).json({ error: 'Valid userId is required' });
       }
 

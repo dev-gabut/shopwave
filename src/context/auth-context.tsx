@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useState, ReactNode } from 'react';
-import { loginUser } from '@/models/user';
 
 // This is a mock user object. In a real app, this would come from an auth provider.
 interface Address {
