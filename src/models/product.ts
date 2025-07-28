@@ -25,23 +25,25 @@ declare module '../lib/types' {
   }
 }
 
-// Define a type for Prisma product with relations
-type ProductWithRelations = Prisma.ProductGetPayload<{
-  include: {
-    images: true;
-    shop: true;
-    showcase: true;
-  };
-}>;
-
 // Helper function to map Prisma product to our Product type
-function mapToProduct(p: ProductWithRelations): Product {
+function mapToProduct(p: {
+  id: number;
+  name: string;
+  description: string;
+  price: Prisma.Decimal | number;
+  images: { imageUrl: string }[];
+  shop: { shopName: string };
+  showcase?: { name: string } | null;
+  category?: string;
+  stock?: number;
+  showcaseId?: number | null;
+}): Product {
   const product: Product = {
     id: p.id.toString(),
     name: p.name,
     slug: '', // slug is empty
     description: p.description,
-    price: Number(p.price),
+    price: typeof p.price === 'number' ? p.price : Number(p.price),
     images: p.images.map(img => img.imageUrl),
     relatedProducts: [],
     shopName: p.shop.shopName,
@@ -63,7 +65,7 @@ export async function getProductsByShopId(shopId: number): Promise<Product[]> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return prismaProducts.map(p => mapToProduct(p as ProductWithRelations));
+  return prismaProducts.map(p => mapToProduct(p));
 }
 
 export type CreateProductInput = {
@@ -132,7 +134,7 @@ export async function getProducts(query?: string): Promise<Product[]> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return prismaProducts.map(p => mapToProduct(p as ProductWithRelations));
+  return prismaProducts.map(p => mapToProduct(p));
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -144,7 +146,7 @@ export async function getProductById(id: string): Promise<Product | null> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return product ? mapToProduct(product as ProductWithRelations) : null;
+  return product ? mapToProduct(product) : null;
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
@@ -157,7 +159,7 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return product ? mapToProduct(product as ProductWithRelations) : null;
+  return product ? mapToProduct(product) : null;
 }
 
 export async function getRelatedProducts(productId: string): Promise<Product[]> {
@@ -179,5 +181,5 @@ export async function getRelatedProducts(productId: string): Promise<Product[]> 
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  return relatedProducts.map(p => mapToProduct(p as ProductWithRelations));
+  return relatedProducts.map(p => mapToProduct(p));
 }
