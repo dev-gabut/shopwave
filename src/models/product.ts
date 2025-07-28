@@ -10,7 +10,6 @@ export type Category =
   | 'BOOKS'
   | 'OTHER';
 
-import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type { Product } from '../lib/types';
 export type { Product } from '@/lib/types';
@@ -30,7 +29,7 @@ function mapToProduct(p: {
   id: number;
   name: string;
   description: string;
-  price: Prisma.Decimal | number;
+  price: number | { toString: () => string }; // Handle Decimal type
   images: { imageUrl: string }[];
   shop: { shopName: string };
   showcase?: { name: string } | null;
@@ -38,12 +37,17 @@ function mapToProduct(p: {
   stock?: number;
   showcaseId?: number | null;
 }): Product {
+  // Convert price to number safely
+  const priceValue = typeof p.price === 'number' 
+    ? p.price 
+    : Number(p.price.toString());
+
   const product: Product = {
     id: p.id.toString(),
     name: p.name,
     slug: '', // slug is empty
     description: p.description,
-    price: typeof p.price === 'number' ? p.price : Number(p.price),
+    price: priceValue,
     images: p.images.map(img => img.imageUrl),
     relatedProducts: [],
     shopName: p.shop.shopName,
@@ -65,7 +69,7 @@ export async function getProductsByShopId(shopId: number): Promise<Product[]> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return prismaProducts.map(p => mapToProduct(p));
+  return prismaProducts.map(mapToProduct);
 }
 
 export type CreateProductInput = {
@@ -122,7 +126,7 @@ export async function getProducts(query?: string): Promise<Product[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  const where: Prisma.ProductWhereInput | undefined = query ? {
+  const where = query ? {
     OR: [
       { name: { contains: query, mode: 'insensitive' } },
       { description: { contains: query, mode: 'insensitive' } },
@@ -134,7 +138,7 @@ export async function getProducts(query?: string): Promise<Product[]> {
     include: { images: true, shop: true, showcase: true },
   });
   
-  return prismaProducts.map(p => mapToProduct(p));
+  return prismaProducts.map(mapToProduct);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
@@ -181,5 +185,5 @@ export async function getRelatedProducts(productId: string): Promise<Product[]> 
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  return relatedProducts.map(p => mapToProduct(p));
+  return relatedProducts.map(mapToProduct);
 }
