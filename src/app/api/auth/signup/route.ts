@@ -6,7 +6,8 @@ export async function POST(req: NextRequest) {
   try {
     await signup(body);
     return NextResponse.json({ succuess: true }, { status: 201 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }
