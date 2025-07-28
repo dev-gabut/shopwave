@@ -1,4 +1,4 @@
-import { Category } from '@prisma/client';
+import type { Category } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import type { Product } from '../lib/types';
 export type { Product } from '@/lib/types';
