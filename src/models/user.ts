@@ -26,17 +26,17 @@ export async function loginUser({ email, password }: { email: string; password: 
   );
 
   return {
-    id: dbUser.id.toString(),
+    id: String(dbUser.id),
     email: dbUser.email,
     role: dbUser.role.toLowerCase(),
-    addresses: dbUser.addresses.map((a: any) => ({
-      id: a.id.toString(),
-      label: a.label,
-      address: a.address,
-      city: a.city,
-      province: a.province,
-      postalCode: a.postalCode,
-      isDefault: a.isDefault,
+    addresses: dbUser.addresses.map(address => ({
+      id: String(address.id),
+      label: address.label,
+      address: address.address,
+      city: address.city,
+      province: address.province,
+      postalCode: address.postalCode,
+      isDefault: address.isDefault,
     })),
     token,
   };
