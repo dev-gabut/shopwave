@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-import bcrypt from 'bcryptjs';
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
@@ -9,8 +9,8 @@ async function main() {
   // Create a buyer user with address
   const buyer = await prisma.user.create({
     data: {
-      name: 'agung',
-      email: 'buyer.123@gmail.com',
+      name: 'danny',
+      email: 'danny.yolo@gmail.com',
       password: buyerPassword,
       role: 'BUYER',
       addresses: {
