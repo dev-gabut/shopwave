@@ -2,7 +2,6 @@
 
 import { createContext, useState, ReactNode } from 'react';
 
-// This is a mock user object. In a real app, this would come from an auth provider.
 interface Address {
   id: string;
   label: string;
@@ -31,9 +30,7 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// In a real application, you would use a library like firebase/auth
-// For this prototype, we'll use localStorage to simulate user sessions.
-
+// Authentication is handled via API routes and HTTP-only JWT cookies.
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -61,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   };
 
-  // Signup and logout can be left empty or throw errors (since you seed users)
+  // Signup is not implemented in this prototype.
   const signup = async () => {
     throw new Error('Signup is disabled. Use seeded users.');
   };
@@ -69,10 +66,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
   const refreshUser = async () => {
-    // Optionally re-fetch user from DB if needed
-    // This should be done via API route, not Prisma in frontend
-    // Placeholder for your friend to implement API-based refresh
-    throw new Error('refreshUser must be handled via API route.');
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/refresh');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to refresh user');
+      setUser(data.user);
+    } catch (err) {
+      setUser(null);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const value = {

@@ -27,10 +27,8 @@ import * as z from 'zod';
 
 const shopSchema = z.object({
   shopName: z.string().min(1, 'Shop name is required'),
-  image: z
-    .instanceof(FileList)
-    .optional()
-    .or(z.null()),
+  description: z.string().min(1, 'Description is required'),
+  image: z.unknown().optional(),
 });
 
 type ShopFormData = z.infer<typeof shopSchema>;
@@ -44,7 +42,7 @@ export default function SellerPage() {
 
   const form = useForm<ShopFormData>({
     resolver: zodResolver(shopSchema),
-    defaultValues: { shopName: '', image: undefined },
+    defaultValues: { shopName: '', description: '', image: undefined },
   });
 
   useEffect(() => {
@@ -60,21 +58,34 @@ export default function SellerPage() {
 
   const onSubmit = async (data: ShopFormData) => {
     setIsSubmitting(true);
-    const imageUrl = '';
-    if (data.image && data.image[0]) {
-      // imageUrl = await uploadImage(data.image[0]);
+    try {
+      const formData = new FormData();
+      formData.append('shopName', data.shopName);
+      formData.append('description', data.description);
+      formData.append('userId', String(user?.id ?? ''));
+
+      // Type assertion for image field
+      const imageFiles = data.image as FileList | null | undefined;
+      if (imageFiles && imageFiles.length > 0) {
+        formData.append('image', imageFiles[0]);
+      }
+
+      const res = await fetch('/api/shop', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to create shop');
+      }
+
+      await refreshUser?.();
+      router.push('/seller');
+    } catch (err) {
+      // Optionally show error to user
+      console.error(err);
     }
-    await fetch('/api/shop', {
-      method: 'POST',
-      body: JSON.stringify({
-        shopName: data.shopName,
-        imageUrl,
-        address: defaultAddress,
-      }),
-      headers: { 'Content-Type': 'application/json' },
-    });
-    await refreshUser?.();
-    router.push('/seller');
     setIsSubmitting(false);
   };
 
@@ -165,6 +176,21 @@ export default function SellerPage() {
                     <FormLabel>Shop Name</FormLabel>
                     <FormControl>
                       <Input placeholder="Enter shop name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Shop Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter shop description" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
