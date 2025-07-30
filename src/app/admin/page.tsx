@@ -10,7 +10,7 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && (!user || user.role !== 'admin')) {
+    if (!loading && (!user || user.role !== 'ADMIN')) {
       router.push('/');
     }
   }, [user, loading, router]);
@@ -23,7 +23,7 @@ export default function AdminPage() {
     )
   }
   
-  if (user.role !== 'admin') {
+  if (user.role !== 'ADMIN') {
     return null;
   }
 
