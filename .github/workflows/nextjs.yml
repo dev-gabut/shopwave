@@ -81,6 +81,7 @@ jobs:
           SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
           DATABASE_URL=${{ secrets.DATABASE_URL }}
           SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
           SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           EOF
       - name: Generate Prisma Client
