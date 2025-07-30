@@ -1,13 +1,9 @@
 //imports
 import { NextRequest, NextResponse } from 'next/server';
 import { loginUser } from '@/models/user';
-import { prisma } from '@/lib/prisma'; 
 
 export async function POST(req: NextRequest) {
   try {
-    // Ensure prisma is connected
-    await prisma.$connect();
-    
     const { email, password } = await req.json();
     const user = await loginUser({ email, password });
     
@@ -23,7 +19,7 @@ export async function POST(req: NextRequest) {
     
     // Set HTTPOnly cookie
     response.cookies.set({
-      name: 'token',
+      name: 'ShopWaveToken',
       value: user.token,
       httpOnly: true,
       path: '/',
@@ -34,8 +30,5 @@ export async function POST(req: NextRequest) {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({ error: errorMessage }, { status: 401 });
-  } finally {
-    // Disconnect Prisma client
-    await prisma.$disconnect();
   }
 }

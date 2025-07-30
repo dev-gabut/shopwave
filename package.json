@@ -11,6 +11,9 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
   },
+  "prisma": {
+      "seed": "node prisma/seed.js"
+  },
   "dependencies": {
     "@genkit-ai/googleai": "^1.14.1",
     "@genkit-ai/next": "^1.14.1",
@@ -47,6 +50,7 @@
     "firebase": "^11.9.1",
     "formidable": "^3.5.4",
     "genkit": "^1.14.1",
+    "jose": "^6.0.12",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.475.0",
     "next": "15.3.3",

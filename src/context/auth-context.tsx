@@ -15,17 +15,16 @@ interface Address {
 interface User {
   id: string;
   email: string;
-  role: 'buyer' | 'seller' | 'admin';
+  role: 'BUYER' | 'SELLER' | 'ADMIN';
   addresses?: Address[];
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (email: string, pass: string) => Promise<void>;
+  signin: (email: string, pass: string) => Promise<void>;
   signup: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
-  refreshUser?: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,10 +35,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false);
 
   // Call server-side loginUser for login
-  const login = async (email: string, pass: string) => {
+  const signin = async (email: string, pass: string) => {
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch('/api/auth/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -48,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Login failed');
+        throw new Error(data.error || 'Signin failed');
       }
       setUser(data.user);
     } catch (err) {
@@ -65,28 +64,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     setUser(null);
   };
-  const refreshUser = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('/api/auth/refresh');
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to refresh user');
-      setUser(data.user);
-    } catch (err) {
-      setUser(null);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const value = {
     user,
     loading,
-    login,
+    signin,
     signup,
     logout,
-    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

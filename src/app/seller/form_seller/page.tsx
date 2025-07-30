@@ -34,7 +34,7 @@ const shopSchema = z.object({
 type ShopFormData = z.infer<typeof shopSchema>;
 
 export default function SellerPage() {
-  const { user, loading, refreshUser } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,8 +79,6 @@ export default function SellerPage() {
         const error = await res.json();
         throw new Error(error.error || 'Failed to create shop');
       }
-
-      await refreshUser?.();
       router.push('/seller');
     } catch (err) {
       // Optionally show error to user
@@ -106,7 +104,7 @@ export default function SellerPage() {
     );
   }
 
-  if (user.role === 'seller') {
+  if (user.role === 'SELLER') {
     return (
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-headline font-bold mb-8">Seller Panel</h1>
