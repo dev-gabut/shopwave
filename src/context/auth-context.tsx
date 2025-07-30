@@ -75,8 +75,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       setUser(null);
       throw err;
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const value = {
