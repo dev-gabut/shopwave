@@ -56,7 +56,7 @@ export function Header() {
             </Link>
           </Button>
           <CartIcon />
-          {user && user.role === 'buyer' && (
+          {user && user.role === 'BUYER' && (
             <Button variant="outline" onClick={() => router.push('/seller/form_seller')}>
               Sell
             </Button>
@@ -89,13 +89,13 @@ export function Header() {
                   <UserIcon className="mr-2 h-4 w-4" />
                   <span>Account Settings</span>
                 </DropdownMenuItem>
-                {user.role === 'seller' && (
+                {user.role === 'SELLER' && (
                   <DropdownMenuItem onClick={() => router.push('/seller')}>
                     <Store className="mr-2 h-4 w-4" />
                     <span>Seller Panel</span>
                   </DropdownMenuItem>
                 )}
-                {user.role === 'admin' && (
+                {user.role === 'ADMIN' && (
                   <DropdownMenuItem onClick={() => router.push('/admin')}>
                     <Shield className="mr-2 h-4 w-4" />
                     <span>Admin Panel</span>

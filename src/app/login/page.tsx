@@ -26,7 +26,7 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { signin } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const form = useForm<LoginFormValues>({
@@ -37,15 +37,14 @@ function LoginPageContent() {
   const onSubmit = async (data: LoginFormValues) => {
     setLoading(true);
     try {
-      await login(data.email, data.password);
+      await signin(data.email, data.password);
       toast({
         title: 'Sign In Successful',
         description: "Welcome back!",
       });
       const redirect = searchParams?.get('redirect') || '/';
       router.push(redirect);
-    } catch (error) {
-      console.error(error);
+    } catch {
       toast({
         variant: 'destructive',
         title: 'Sign In Failed',

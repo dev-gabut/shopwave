@@ -9,10 +9,11 @@ async function main() {
   // Create a buyer user with address
   const buyer = await prisma.user.create({
     data: {
-      name: 'eko',
-      email: 'eko.league@gmail.com',
+      name: 'yonas',
+      email: 'yonas.league@gmail.com',
       password: buyerPassword,
       role: 'BUYER',
+      imageUrl: 'https://picsum.photos/200/300',
       addresses: {
         create: [
           {

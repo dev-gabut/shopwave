@@ -15,6 +15,7 @@ model User {
   email     String   @unique
   password  String
   role      Role     @default(BUYER)
+  imageUrl  String?
   createdAt DateTime @default(now())
 
   addresses Address[]

@@ -21,8 +21,7 @@ type Category = typeof VALID_CATEGORIES[number];
 
 export async function POST(req: Request) {
   try {
-    // Ensure Prisma is connected
-    await prisma.$connect();
+   
 
     const formData = await req.formData();
     
@@ -120,8 +119,5 @@ export async function POST(req: Request) {
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     return new Response(JSON.stringify({ error: 'Internal server error', details: errorMessage }), { status: 500 });
-  } finally {
-    // Disconnect Prisma client
-    await prisma.$disconnect();
-  }
+  } 
 }
