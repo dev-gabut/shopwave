@@ -9,8 +9,8 @@ async function main() {
   // Create a buyer user with address
   const buyer = await prisma.user.create({
     data: {
-      name: 'danny',
-      email: 'danny.yolo@gmail.com',
+      name: 'eko',
+      email: 'eko.league@gmail.com',
       password: buyerPassword,
       role: 'BUYER',
       addresses: {
