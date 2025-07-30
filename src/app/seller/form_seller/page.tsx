@@ -3,6 +3,7 @@
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import {
   Card,
   CardContent,
@@ -26,7 +27,10 @@ import * as z from 'zod';
 
 const shopSchema = z.object({
   shopName: z.string().min(1, 'Shop name is required'),
-  image: z.any().optional(),
+  image: z
+    .instanceof(FileList)
+    .optional()
+    .or(z.null()),
 });
 
 type ShopFormData = z.infer<typeof shopSchema>;
@@ -51,12 +55,12 @@ export default function SellerPage() {
 
   const defaultAddress =
     user && user.addresses
-      ? user.addresses.find((a: any) => a.isDefault)
+      ? user.addresses.find((a: { isDefault: boolean }) => a.isDefault)
       : undefined;
 
   const onSubmit = async (data: ShopFormData) => {
     setIsSubmitting(true);
-    let imageUrl = '';
+    const imageUrl = '';
     if (data.image && data.image[0]) {
       // imageUrl = await uploadImage(data.image[0]);
     }
@@ -130,10 +134,12 @@ export default function SellerPage() {
                   className="w-32 h-32 rounded-full overflow-hidden cursor-pointer border-2 border-dashed border-gray-300 flex items-center justify-center relative group"
                 >
                   {preview ? (
-                    <img
+                    <Image
                       src={preview}
                       alt="Shop"
                       className="object-cover w-full h-full"
+                      width={128}
+                      height={128}
                     />
                   ) : (
                     <span className="text-gray-400 text-sm text-center">
