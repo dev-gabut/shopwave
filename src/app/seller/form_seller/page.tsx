@@ -28,10 +28,7 @@ import * as z from 'zod';
 const shopSchema = z.object({
   shopName: z.string().min(1, 'Shop name is required'),
   description: z.string().min(1, 'Description is required'),
-  image: z
-    .instanceof(FileList)
-    .optional()
-    .or(z.null()),
+  image: z.unknown().optional(),
 });
 
 type ShopFormData = z.infer<typeof shopSchema>;
@@ -66,8 +63,11 @@ export default function SellerPage() {
       formData.append('shopName', data.shopName);
       formData.append('description', data.description);
       formData.append('userId', String(user?.id ?? ''));
-      if (data.image && data.image.length > 0) {
-        formData.append('image', data.image[0]);
+
+      // Type assertion for image field
+      const imageFiles = data.image as FileList | null | undefined;
+      if (imageFiles && imageFiles.length > 0) {
+        formData.append('image', imageFiles[0]);
       }
 
       const res = await fetch('/api/shop', {
