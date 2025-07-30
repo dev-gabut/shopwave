@@ -11,9 +11,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'No token found' }, { status: 401 });
     }
 
-    let payload: any;
+
+    let payload: { id: number; role: string; exp: number };
     try {
-      payload = jwt.verify(token, JWT_SECRET);
+      payload = jwt.verify(token, JWT_SECRET) as { id: number; role: string; exp: number };
     } catch {
       return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
         })),
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
