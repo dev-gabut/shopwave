@@ -57,7 +57,7 @@ export function Header() {
           </Button>
           <CartIcon />
           {user && user.role === 'buyer' && (
-            <Button variant="outline" onClick={() => router.push('/seller')}>
+            <Button variant="outline" onClick={() => router.push('/seller/form_seller')}>
               Sell
             </Button>
           )}

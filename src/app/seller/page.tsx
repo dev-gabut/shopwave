@@ -207,7 +207,7 @@ export default function SellerDashboard() {
 
   // Handle add product
   const handleAddProduct = () => {
-    router.push('/seller/products/new');
+    router.push('/seller/add_product');
   };
 
   // Handle add showcase
