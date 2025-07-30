@@ -1,8 +1,9 @@
-"use client";
+'use client';
 import React, { useState } from 'react';
 import { ArrowLeft, Upload, X, ImageIcon, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useEffect } from 'react';
+import Link from 'next/link';
 // Types matching Prisma schema
 type ProductFormData = {
   name: string;
@@ -29,7 +30,6 @@ type FormErrors = {
   images?: string;
 };
 
-
 // Categories from your Prisma schema
 const CATEGORIES = [
   { value: 'ELECTRONICS', label: 'Electronics' },
@@ -40,20 +40,16 @@ const CATEGORIES = [
   { value: 'TOYS', label: 'Toys' },
   { value: 'SPORTS', label: 'Sports' },
   { value: 'BOOKS', label: 'Books' },
-  { value: 'OTHER', label: 'Other' }
+  { value: 'OTHER', label: 'Other' },
 ];
-
 
 // Mock showcases - in real app, fetch from API
 const mockShowcases = [
-  { id: 1, name: "Summer Collection" },
-  { id: 2, name: "Tech Gadgets" },
-  { id: 3, name: "Casual Wear" },
-  { id: 4, name: "Winter Collection" }
+  { id: 1, name: 'Summer Collection' },
+  { id: 2, name: 'Tech Gadgets' },
+  { id: 3, name: 'Casual Wear' },
+  { id: 4, name: 'Winter Collection' },
 ];
-
-
-
 
 export default function AddProductPage() {
   const { user, loading } = useAuth();
@@ -63,7 +59,7 @@ export default function AddProductPage() {
     price: '',
     stock: '',
     category: '',
-    showcaseId: ''
+    showcaseId: '',
   });
   const [images, setImages] = useState<ProductImage[]>([]);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -90,16 +86,20 @@ export default function AddProductPage() {
     fetchShop();
   }, [user]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     if (errors[name as keyof FormErrors]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: '',
       }));
     }
   };
@@ -107,7 +107,7 @@ export default function AddProductPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target || !e.target.files) return;
     const files = Array.from(e.target.files);
-    files.forEach(file => {
+    files.forEach((file) => {
       if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = (ev) => {
@@ -115,9 +115,9 @@ export default function AddProductPage() {
             id: Date.now() + Math.random(),
             file: file,
             url: typeof ev.target?.result === 'string' ? ev.target.result : '',
-            isPrimary: images.length === 0
+            isPrimary: images.length === 0,
           };
-          setImages(prev => [...prev, newImage]);
+          setImages((prev) => [...prev, newImage]);
         };
         reader.readAsDataURL(file);
       }
@@ -125,9 +125,9 @@ export default function AddProductPage() {
   };
 
   const removeImage = (imageId: number) => {
-    setImages(prev => {
-      const updated = prev.filter(img => img.id !== imageId);
-      if (updated.length > 0 && !updated.some(img => img.isPrimary)) {
+    setImages((prev) => {
+      const updated = prev.filter((img) => img.id !== imageId);
+      if (updated.length > 0 && !updated.some((img) => img.isPrimary)) {
         updated[0].isPrimary = true;
       }
       return updated;
@@ -135,10 +135,12 @@ export default function AddProductPage() {
   };
 
   const setPrimaryImage = (imageId: number) => {
-    setImages(prev => prev.map(img => ({
-      ...img,
-      isPrimary: img.id === imageId
-    })));
+    setImages((prev) =>
+      prev.map((img) => ({
+        ...img,
+        isPrimary: img.id === imageId,
+      }))
+    );
   };
 
   const validateForm = (): boolean => {
@@ -165,7 +167,9 @@ export default function AddProductPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>
+  ) => {
     e.preventDefault();
     if (!validateForm()) {
       return;
@@ -186,7 +190,7 @@ export default function AddProductPage() {
       if (formData.showcaseId) {
         form.append('showcaseId', formData.showcaseId);
       }
-      images.forEach(img => {
+      images.forEach((img) => {
         form.append('images', img.file);
       });
       const res = await fetch('/api/product', {
@@ -204,7 +208,7 @@ export default function AddProductPage() {
           price: '',
           stock: '',
           category: '',
-          showcaseId: ''
+          showcaseId: '',
         });
         setImages([]);
       }
@@ -224,15 +228,16 @@ export default function AddProductPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-3xl mx-auto p-4 md:p-6">
-        
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <button
-            onClick={handleBack}
-            className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
-          </button>
+          <Link href="/seller">
+            <button
+              onClick={handleBack}
+              className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-600" />
+            </button>
+          </Link>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-gray-900">
               Add New Product
@@ -242,15 +247,15 @@ export default function AddProductPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          
           {/* Main Form Card */}
           <div className="bg-white rounded-lg border border-gray-200 p-5">
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
               {/* Product Name */}
               <div className="md:col-span-2">
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Product Name *
                 </label>
                 <input
@@ -274,7 +279,10 @@ export default function AddProductPage() {
 
               {/* Product Description */}
               <div className="md:col-span-2">
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Description *
                 </label>
                 <textarea
@@ -298,7 +306,10 @@ export default function AddProductPage() {
 
               {/* Price */}
               <div>
-                <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="price"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Price (Rp) *
                 </label>
                 <input
@@ -324,7 +335,10 @@ export default function AddProductPage() {
 
               {/* Stock */}
               <div>
-                <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="stock"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Stock *
                 </label>
                 <input
@@ -349,7 +363,10 @@ export default function AddProductPage() {
 
               {/* Category */}
               <div>
-                <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="category"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Category *
                 </label>
                 <select
@@ -362,7 +379,7 @@ export default function AddProductPage() {
                   }`}
                 >
                   <option value="">Select category</option>
-                  {CATEGORIES.map(category => (
+                  {CATEGORIES.map((category) => (
                     <option key={category.value} value={category.value}>
                       {category.label}
                     </option>
@@ -378,7 +395,10 @@ export default function AddProductPage() {
 
               {/* Showcase */}
               <div>
-                <label htmlFor="showcaseId" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="showcaseId"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Showcase
                 </label>
                 <select
@@ -389,7 +409,7 @@ export default function AddProductPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 >
                   <option value="">No showcase</option>
-                  {mockShowcases.map(showcase => (
+                  {mockShowcases.map((showcase) => (
                     <option key={showcase.id} value={showcase.id}>
                       {showcase.name}
                     </option>
@@ -401,16 +421,24 @@ export default function AddProductPage() {
 
           {/* Images Card */}
           <div className="bg-white rounded-lg border border-gray-200 p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Product Images *</h3>
-            
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              Product Images *
+            </h3>
+
             {/* Upload Area */}
             <div className="mb-4">
               <label htmlFor="images" className="block">
-                <div className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
-                  errors.images ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
-                }`}>
+                <div
+                  className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                    errors.images
+                      ? 'border-red-300 bg-red-50'
+                      : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                  }`}
+                >
                   <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                  <p className="text-xs text-gray-600">Click to upload images</p>
+                  <p className="text-xs text-gray-600">
+                    Click to upload images
+                  </p>
                   <p className="text-xs text-gray-500">PNG, JPG up to 10MB</p>
                 </div>
               </label>
@@ -442,7 +470,7 @@ export default function AddProductPage() {
                         className="w-full h-full object-cover"
                       />
                     </div>
-                    
+
                     <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
                       <div className="flex gap-1">
                         {!image.isPrimary && (
@@ -484,13 +512,15 @@ export default function AddProductPage() {
 
           {/* Submit Buttons */}
           <div className="flex justify-end gap-3">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
-            >
-              Cancel
-            </button>
+            <Link href="/seller">
+              <button
+                type="button"
+                onClick={handleBack}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+              >
+                Cancel
+              </button>
+            </Link>
             <button
               type="submit"
               disabled={isSubmitting}
