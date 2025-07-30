@@ -4,13 +4,19 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'shopwave-secret';
 
+// Add this export to fix the static export error
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(req: NextRequest) {
   try {
+    // Ensure Prisma is connected
+    await prisma.$connect();
+
     const token = req.cookies.get('token')?.value;
     if (!token) {
       return NextResponse.json({ error: 'No token found' }, { status: 401 });
     }
-
 
     let payload: { id: number; role: string; exp: number };
     try {
@@ -20,7 +26,7 @@ export async function GET(req: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: Number(payload.id) },
+      where: { id: payload.id }, // No need for Number() since payload.id is already number
       include: { addresses: true },
     });
 
@@ -44,7 +50,11 @@ export async function GET(req: NextRequest) {
         })),
       },
     });
-  } catch {
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: `Internal server error: ${errorMessage}` }, { status: 500 });
+  } finally {
+    // Disconnect Prisma client
+    await prisma.$disconnect();
   }
 }
