@@ -22,10 +22,14 @@ type Product = {
 import { getShowcasesByShopId } from '@/models/showcase';
 
 // StatCard component
-const StatCard = ({ title, count, bgColor = "bg-gray-200" }: { 
-  title: string; 
-  count: number; 
-  bgColor?: string 
+const StatCard = ({
+  title,
+  count,
+  bgColor = 'bg-gray-200',
+}: {
+  title: string;
+  count: number;
+  bgColor?: string;
 }) => (
   <div className={`${bgColor} rounded-lg p-4 text-center`}>
     <div className="text-xs font-medium text-gray-700 mb-1">{title}</div>
@@ -33,13 +37,27 @@ const StatCard = ({ title, count, bgColor = "bg-gray-200" }: {
   </div>
 );
 
+// Make date in chart dynamic
+const getLast7DaysRange = () => {
+  const endDate = new Date(); // Hari ini
+  const startDate = new Date();
+  startDate.setDate(endDate.getDate() - 6); // 6 hari ke belakang (total 7 hari)
+
+  const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
+
+  const formattedStart = startDate.toLocaleDateString('en-GB', options);
+  const formattedEnd = endDate.toLocaleDateString('en-GB', options);
+
+  return `from ${formattedStart} - ${formattedEnd}`;
+};
+
 // ProductCard component
 const ProductCard = ({ product }: { product: Product }) => (
   <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
     <div className="aspect-square bg-gray-200 flex items-center justify-center">
       {product.images.length > 0 ? (
-        <img 
-          src={product.images[0]} 
+        <img
+          src={product.images[0]}
           alt={product.name}
           className="w-full h-full object-cover"
         />
@@ -57,7 +75,9 @@ const ProductCard = ({ product }: { product: Product }) => (
           {product.category}
         </span>
       </div>
-      <p className="text-blue-600 font-semibold">Rp {Number(product.price).toLocaleString('id-ID')}</p>
+      <p className="text-blue-600 font-semibold">
+        Rp {Number(product.price).toLocaleString('id-ID')}
+      </p>
     </div>
   </div>
 );
@@ -72,14 +92,14 @@ const CATEGORIES = [
   'TOYS',
   'SPORTS',
   'BOOKS',
-  'OTHER'
+  'OTHER',
 ] as const;
 
 export default function SellerDashboard() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  
+
   // State variables
   type Shop = {
     id: number;
@@ -92,53 +112,58 @@ export default function SellerDashboard() {
   const [products, setProducts] = useState<Product[]>([]);
   const [showcases, setShowcases] = useState<Showcase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filterType, setFilterType] = useState<'all' | 'category' | 'showcase'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'category' | 'showcase'>(
+    'all'
+  );
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   // Use a proper type for showcase, assuming showcase has at least id and name
   type Showcase = { id: number; name: string; productCount?: number };
-  const [selectedShowcase, setSelectedShowcase] = useState<Showcase | null>(null);
-  
+  const [selectedShowcase, setSelectedShowcase] = useState<Showcase | null>(
+    null
+  );
+
   // Dummy stats for now
   const [stats] = useState({
     newOrders: 5,
     paidOrders: 3,
     shippedOrders: 6,
     failedOrders: 2,
-    newReviews: 0
+    newReviews: 0,
   });
 
   // Load shop data
   useEffect(() => {
     if (!user) return;
-    
+
     const loadShopData = async () => {
       try {
         setIsLoading(true);
-        
+
         // Get shop by user ID
         const shop = await getShopByUserId(Number(user.id));
         if (shop) {
           setShopData(shop);
-          
+
           // Get products by shop ID
           const productsRaw = await getProductsByShopId(shop.id);
-          const products = productsRaw.map(p => ({
+          const products = productsRaw.map((p) => ({
             ...p,
             id: typeof p.id === 'string' ? Number(p.id) : p.id,
-            showcase: p.showcase && typeof p.showcase === 'object' && 'id' in p.showcase
-              ? ((p.showcase as Showcase).name
-                  ? { 
-                      id: Number((p.showcase as Showcase).id), 
-                      name: String((p.showcase as Showcase).name), 
-                      productCount: (p.showcase as Showcase).productCount 
+            showcase:
+              p.showcase && typeof p.showcase === 'object' && 'id' in p.showcase
+                ? (p.showcase as Showcase).name
+                  ? {
+                      id: Number((p.showcase as Showcase).id),
+                      name: String((p.showcase as Showcase).name),
+                      productCount: (p.showcase as Showcase).productCount,
                     }
-                  : null)
-              : null,
+                  : null
+                : null,
             stock: typeof p.stock === 'number' ? p.stock : 0, // Ensure stock is always a number
-            category: typeof p.category === 'string' ? p.category : 'OTHER' // Ensure category is always a string
+            category: typeof p.category === 'string' ? p.category : 'OTHER', // Ensure category is always a string
           }));
           setProducts(products);
-          
+
           // Get showcases by shop ID
           const showcases = await getShowcasesByShopId(shop.id);
           setShowcases(showcases);
@@ -160,10 +185,13 @@ export default function SellerDashboard() {
   // Filter products based on current selection
   const filteredProducts = () => {
     if (filterType === 'category' && selectedCategory) {
-      return products.filter(product => product.category === selectedCategory);
+      return products.filter(
+        (product) => product.category === selectedCategory
+      );
     } else if (filterType === 'showcase' && selectedShowcase) {
-      return products.filter(product => 
-        product.showcase && product.showcase.id === selectedShowcase.id
+      return products.filter(
+        (product) =>
+          product.showcase && product.showcase.id === selectedShowcase.id
       );
     }
     return products;
@@ -202,7 +230,7 @@ export default function SellerDashboard() {
 
   // Get product count for a category
   const getCategoryProductCount = (category: string) => {
-    return products.filter(p => p.category === category).length;
+    return products.filter((p) => p.category === category).length;
   };
 
   // Handle add product
@@ -217,7 +245,11 @@ export default function SellerDashboard() {
 
   // Loading state
   if (authLoading || isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   // Render seller dashboard
@@ -228,9 +260,9 @@ export default function SellerDashboard() {
         <div className="flex items-center gap-6 mb-8">
           <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
             {shopData?.imageUrl ? (
-              <img 
-                src={shopData.imageUrl} 
-                alt="Shop" 
+              <img
+                src={shopData.imageUrl}
+                alt="Shop"
                 className="w-full h-full rounded-full object-cover"
               />
             ) : (
@@ -242,9 +274,11 @@ export default function SellerDashboard() {
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-              {shopData?.shopName || "Your Shop"}
+              {shopData?.shopName || 'Your Shop'}
             </h1>
-            <p className="text-gray-600">{shopData?.description || "Shop description"}</p>
+            <p className="text-gray-600">
+              {shopData?.description || 'Shop description'}
+            </p>
           </div>
         </div>
 
@@ -257,17 +291,19 @@ export default function SellerDashboard() {
         </div>
 
         <div className="grid grid-cols-1 gap-3 mb-8">
-          <StatCard 
-            title="New Review" 
-            count={stats.newReviews} 
+          <StatCard
+            title="New Review"
+            count={stats.newReviews}
             bgColor="bg-gray-200"
           />
         </div>
 
         {/* Shop Statistics Chart */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Your shop statistic</h2>
-          <p className="text-gray-600 mb-4">from 18 July - 25 July</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            Your shop statistic
+          </h2>
+          <p className="text-gray-600 mb-4">{getLast7DaysRange()}</p>
           <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center">
             <div className="text-gray-400 text-center">
               <div className="text-lg font-medium">Chart Placeholder</div>
@@ -284,7 +320,9 @@ export default function SellerDashboard() {
               {/* Combined Showcases Section with All Products */}
               <div className="bg-white rounded-lg border border-gray-200 p-4">
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="text-sm font-semibold text-gray-700">Your Showcases</h4>
+                  <h4 className="text-sm font-semibold text-gray-700">
+                    Your Showcases
+                  </h4>
                   <button
                     onClick={handleAddShowcase}
                     className="text-green-600 hover:text-green-700 p-1 rounded hover:bg-green-50"
@@ -293,20 +331,24 @@ export default function SellerDashboard() {
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
-                
+
                 <div className="space-y-1">
                   {/* All Products as first item */}
                   <div
                     className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
                       filterType === 'all'
-                        ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                        ? 'bg-blue-100 text-blue-800 border border-blue-200'
                         : 'hover:bg-gray-100'
                     }`}
                     onClick={showAllProducts}
                   >
                     <Store className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm font-medium flex-1">All Products</span>
-                    <span className="text-xs text-gray-500">({products.length})</span>
+                    <span className="text-sm font-medium flex-1">
+                      All Products
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      ({products.length})
+                    </span>
                   </div>
 
                   {/* Separator line */}
@@ -315,19 +357,23 @@ export default function SellerDashboard() {
                   )}
 
                   {/* Showcase items */}
-                  {showcases.map(showcase => (
+                  {showcases.map((showcase) => (
                     <div
                       key={showcase.id}
                       className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
                         selectedShowcase?.id === showcase.id
-                          ? 'bg-blue-100 text-blue-800 border border-blue-200' 
+                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
                           : 'hover:bg-gray-100'
                       }`}
                       onClick={() => selectShowcase(showcase)}
                     >
                       <Folder className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm font-medium flex-1">{showcase.name}</span>
-                      <span className="text-xs text-gray-500">({showcase.productCount})</span>
+                      <span className="text-sm font-medium flex-1">
+                        {showcase.name}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        ({showcase.productCount})
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -335,7 +381,9 @@ export default function SellerDashboard() {
                 {showcases.length === 0 && (
                   <div className="text-center py-4 border-t border-gray-200 mt-3">
                     <Folder className="w-6 h-6 text-gray-400 mx-auto mb-2" />
-                    <p className="text-xs text-gray-500 mb-3">No showcases yet</p>
+                    <p className="text-xs text-gray-500 mb-3">
+                      No showcases yet
+                    </p>
                     <button
                       onClick={handleAddShowcase}
                       className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs flex items-center gap-1 mx-auto"
@@ -349,9 +397,11 @@ export default function SellerDashboard() {
 
               {/* Categories Section */}
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">Product Categories</h4>
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                  Product Categories
+                </h4>
                 <div className="space-y-1">
-                  {CATEGORIES.map(category => {
+                  {CATEGORIES.map((category) => {
                     const count = getCategoryProductCount(category);
                     return (
                       <div
@@ -385,7 +435,8 @@ export default function SellerDashboard() {
                     {getFilterTitle()}
                   </h2>
                   <p className="text-sm text-gray-600">
-                    {filteredProducts().length} product{filteredProducts().length !== 1 ? 's' : ''}
+                    {filteredProducts().length} product
+                    {filteredProducts().length !== 1 ? 's' : ''}
                   </p>
                 </div>
                 <button
@@ -396,16 +447,13 @@ export default function SellerDashboard() {
                   Add Product
                 </button>
               </div>
-              
+
               <div className="grid grid-cols-3 gap-4">
                 {filteredProducts().map((product) => (
-                  <ProductCard 
-                    key={product.id} 
-                    product={product} 
-                  />
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
-              
+
               {filteredProducts().length === 0 && (
                 <div className="text-center py-12">
                   <Store className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -413,12 +461,11 @@ export default function SellerDashboard() {
                     No products found
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    {filterType === 'category' && selectedCategory 
+                    {filterType === 'category' && selectedCategory
                       ? `No products in ${selectedCategory} category yet`
                       : filterType === 'showcase' && selectedShowcase
                       ? `No products in ${selectedShowcase?.name} showcase yet`
-                      : 'Start selling by adding your first product'
-                    }
+                      : 'Start selling by adding your first product'}
                   </p>
                   <button
                     onClick={handleAddProduct}
