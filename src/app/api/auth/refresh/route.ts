@@ -4,10 +4,6 @@ import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'shopwave-secret';
 
-// Add this export to fix the static export error
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 export async function GET(req: NextRequest) {
   try {
     // Ensure Prisma is connected
@@ -26,7 +22,7 @@ export async function GET(req: NextRequest) {
     }
 
     const user = await prisma.user.findUnique({
-      where: { id: payload.id }, // No need for Number() since payload.id is already number
+      where: { id: payload.id },
       include: { addresses: true },
     });
 
