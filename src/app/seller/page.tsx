@@ -1,8 +1,9 @@
 
 import { Plus, Store, Folder, Tag } from 'lucide-react';
+import AddShowcaseInlineForm from './AddShowcaseInlineForm';
 import { getShopByUserId } from '@/models/shop';
 import { getProductsByShopId } from '@/models/product';
-import { getShowcasesByShopId } from '@/models/showcase';
+import { getShowcasesByShopId, getAllShowcasesByShopId } from '@/models/showcase';
 import { Product } from '@/lib/types';
 import { redirect } from 'next/navigation';
 
@@ -89,7 +90,8 @@ export default async function SellerDashboard() {
     );
   }
   const productsRaw = await getProductsByShopId(shop.id);
-  const showcases = await getShowcasesByShopId(shop.id);
+  // Fetch all showcases for the shop, not just those with products
+  const showcases = await getAllShowcasesByShopId(shop.id);
   // Map products to match Product interface (id: string, showcase: string | undefined)
   const products: Product[] = productsRaw.map((p: any) => {
     const showcaseObj = p.showcase as { name?: string } | null | undefined;
@@ -173,14 +175,9 @@ export default async function SellerDashboard() {
               {/* Showcases Section with Add Showcase and All Products */}
               <div className="bg-white rounded-lg border border-gray-200 p-4">
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="text-sm font-semibold text-gray-700">Your Showcases</h4>
-                  <a
-                    href="/seller/showcases/new"
-                    className="text-green-600 hover:text-green-700 p-1 rounded hover:bg-green-50"
-                    title="Add Showcase"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </a>
+                  <h4 className="text-sm font-semibold text-gray-700">Showcase</h4>
+                  {/* Client-side Add Showcase form */}
+                  <AddShowcaseInlineForm shopId={shop.id} />
                 </div>
                 <div className="space-y-1">
                   {/* All Products as first item */}
