@@ -1,3 +1,33 @@
+// Update product
+export type UpdateProductInput = {
+  id: number;
+  name?: string;
+  description?: string;
+  price?: number;
+  stock?: number;
+  category?: Category;
+  showcaseId?: number | null;
+};
+
+export async function updateProduct({ id, ...data }: UpdateProductInput) {
+  // Only update provided fields
+  return prisma.product.update({
+    where: { id },
+    data: {
+      ...data,
+    },
+    include: { images: true, shop: true, showcase: true },
+  });
+}
+
+// Delete product
+export async function deleteProduct(id: number) {
+  // Delete all related images first to avoid foreign key constraint error
+  await prisma.productImage.deleteMany({ where: { productId: id } });
+  return prisma.product.delete({
+    where: { id },
+  });
+}
 // Category type matching Prisma enum
 export type Category =
   | 'ELECTRONICS'
