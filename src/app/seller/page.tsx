@@ -170,10 +170,33 @@ export default async function SellerDashboard() {
           {/* Sidebar */}
           <div className="col-span-3">
             <div className="space-y-4">
-              {/* Showcases Section */}
+              {/* Showcases Section with Add Showcase and All Products */}
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">Your Showcases</h4>
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="text-sm font-semibold text-gray-700">Your Showcases</h4>
+                  <a
+                    href="/seller/showcases/new"
+                    className="text-green-600 hover:text-green-700 p-1 rounded hover:bg-green-50"
+                    title="Add Showcase"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </a>
+                </div>
                 <div className="space-y-1">
+                  {/* All Products as first item */}
+                  <a
+                    href="/seller"
+                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors bg-blue-100 text-blue-800 border border-blue-200`}
+                  >
+                    <Store className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm font-medium flex-1">All Products</span>
+                    <span className="text-xs text-gray-500">({products.length})</span>
+                  </a>
+                  {/* Separator line */}
+                  {showcases.length > 0 && (
+                    <div className="border-t border-gray-200 my-2"></div>
+                  )}
+                  {/* Showcase items */}
                   {showcases.length === 0 ? (
                     <div className="text-center py-4 border-t border-gray-200 mt-3">
                       <Folder className="w-6 h-6 text-gray-400 mx-auto mb-2" />
@@ -200,16 +223,17 @@ export default async function SellerDashboard() {
                   {CATEGORIES.map(category => {
                     const count = products.filter(p => p.category === category).length;
                     return (
-                      <div
+                      <a
                         key={category}
-                        className="flex items-center gap-2 p-2 rounded-lg"
+                        href={`/seller?category=${encodeURIComponent(category)}`}
+                        className="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-100"
                       >
                         <Tag className="w-4 h-4 text-gray-500" />
                         <span className="text-sm font-medium flex-1 capitalize">
                           {category.toLowerCase()}
                         </span>
                         <span className="text-xs text-gray-500">({count})</span>
-                      </div>
+                      </a>
                     );
                   })}
                 </div>
@@ -228,6 +252,13 @@ export default async function SellerDashboard() {
                     {products.length} product{products.length !== 1 ? 's' : ''}
                   </p>
                 </div>
+                <a
+                  href="/seller/add_product"
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Product
+                </a>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 {products.map((product: Product) => (

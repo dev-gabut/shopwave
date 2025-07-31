@@ -30,9 +30,28 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Authentication is handled via API routes and HTTP-only JWT cookies.
+import { useEffect } from 'react';
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Restore user from cookie/session on mount
+  useEffect(() => {
+    async function fetchUser() {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        setUser(data.user);
+      } catch {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchUser();
+  }, []);
 
   // Call server-side loginUser for login
   const signin = async (email: string, pass: string) => {
