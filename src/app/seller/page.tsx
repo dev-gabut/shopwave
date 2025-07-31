@@ -61,10 +61,18 @@ const CATEGORIES = [
   'OTHER'
 ] as const;
 
+
+import { cookies, headers } from 'next/headers';
+
 export default async function SellerDashboard() {
-  // TODO: Replace with real server-side user auth logic
-  // For now, use a placeholder userId (e.g., 1)
-  const userId = 1; // Replace with real user ID from cookies/session
+  // Get userId from request headers (set by middleware)
+  const headersList = await headers();
+  const userIdHeader = headersList.get('x-user-id');
+  const userId = userIdHeader ? Number(userIdHeader) : null;
+  if (!userId || isNaN(userId)) {
+    // Not authenticated, redirect to login
+    redirect('/login');
+  }
 
   // Fetch shop data
   const shop = await getShopByUserId(userId);
