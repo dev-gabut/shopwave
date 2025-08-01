@@ -7,7 +7,6 @@ import { ArrowLeft } from 'lucide-react';
 import ImageUploadWrapper from '@/components/image-upload-wrapper';
 
 // Removed server action and its imports
-
 // Showcase type
 type Showcase = {
   id: number;
@@ -25,7 +24,7 @@ const CATEGORIES = [
   { value: 'TOYS', label: 'Toys' },
   { value: 'SPORTS', label: 'Sports' },
   { value: 'BOOKS', label: 'Books' },
-  { value: 'OTHER', label: 'Other' }
+  { value: 'OTHER', label: 'Other' },
 ];
 
 export default async function AddProductPage() {
