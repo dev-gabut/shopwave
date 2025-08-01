@@ -1,6 +1,6 @@
 
 'use server';
-import { createShowcaseBasedShopId } from '@/models/showcase';
+import { createShowcaseBasedShopId } from '../../models/showcase';
 import { revalidatePath } from 'next/cache';
 import { Plus } from 'lucide-react';
 
