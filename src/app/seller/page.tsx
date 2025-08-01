@@ -33,6 +33,21 @@ async function deleteProductAction(formData: FormData) {
   revalidatePath('/seller');
 }
 
+
+// Make date in chart dynamic
+const getLast7DaysRange = () => {
+  const endDate = new Date(); // Hari ini
+  const startDate = new Date();
+  startDate.setDate(endDate.getDate() - 6); // 6 hari ke belakang (total 7 hari)
+
+  const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
+
+  const formattedStart = startDate.toLocaleDateString('en-GB', options);
+  const formattedEnd = endDate.toLocaleDateString('en-GB', options);
+
+  return `from ${formattedStart} - ${formattedEnd}`;
+};
+
 // ProductCard component
 function ProductCard({ product }: { product: Product }) {
   return (
@@ -80,6 +95,9 @@ function ProductCard({ product }: { product: Product }) {
           </button>
         </form>
       </div>
+      <p className="text-blue-600 font-semibold">
+        Rp {Number(product.price).toLocaleString('id-ID')}
+      </p>
     </div>
   );
 }
@@ -93,9 +111,8 @@ const CATEGORIES = [
   'TOYS',
   'SPORTS',
   'BOOKS',
-  'OTHER'
+  'OTHER',
 ] as const;
-
 
 import { cookies, headers } from 'next/headers';
 
@@ -146,6 +163,130 @@ export default async function SellerDashboard() {
     newReviews: 0,
   };
   // Render seller dashboard (no client handlers, no state)
+  });
+
+  // Load shop data
+  useEffect(() => {
+    if (!user) return;
+
+    const loadShopData = async () => {
+      try {
+        setIsLoading(true);
+
+        // Get shop by user ID
+        const shop = await getShopByUserId(Number(user.id));
+        if (shop) {
+          setShopData(shop);
+
+          // Get products by shop ID
+          const productsRaw = await getProductsByShopId(shop.id);
+          const products = productsRaw.map((p) => ({
+            ...p,
+            id: typeof p.id === 'string' ? Number(p.id) : p.id,
+            showcase:
+              p.showcase && typeof p.showcase === 'object' && 'id' in p.showcase
+                ? (p.showcase as Showcase).name
+                  ? {
+                      id: Number((p.showcase as Showcase).id),
+                      name: String((p.showcase as Showcase).name),
+                      productCount: (p.showcase as Showcase).productCount,
+                    }
+                  : null
+                : null,
+            stock: typeof p.stock === 'number' ? p.stock : 0, // Ensure stock is always a number
+            category: typeof p.category === 'string' ? p.category : 'OTHER', // Ensure category is always a string
+          }));
+          setProducts(products);
+
+          // Get showcases by shop ID
+          const showcases = await getShowcasesByShopId(shop.id);
+          setShowcases(showcases);
+        }
+      } catch (error) {
+        toast({
+          title: 'Error loading shop',
+          description: 'Could not load your shop data',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadShopData();
+  }, [user, toast]);
+
+  // Filter products based on current selection
+  const filteredProducts = () => {
+    if (filterType === 'category' && selectedCategory) {
+      return products.filter(
+        (product) => product.category === selectedCategory
+      );
+    } else if (filterType === 'showcase' && selectedShowcase) {
+      return products.filter(
+        (product) =>
+          product.showcase && product.showcase.id === selectedShowcase.id
+      );
+    }
+    return products;
+  };
+
+  // Select category handler
+  const selectCategory = (category: string) => {
+    setFilterType('category');
+    setSelectedCategory(category);
+    setSelectedShowcase(null);
+  };
+
+  // Select showcase handler
+  const selectShowcase = (showcase: Showcase) => {
+    setFilterType('showcase');
+    setSelectedShowcase(showcase);
+    setSelectedCategory(null);
+  };
+
+  // Show all products handler
+  const showAllProducts = () => {
+    setFilterType('all');
+    setSelectedCategory(null);
+    setSelectedShowcase(null);
+  };
+
+  // Get filter title
+  const getFilterTitle = () => {
+    if (filterType === 'category' && selectedCategory) {
+      return `${selectedCategory} Products`;
+    } else if (filterType === 'showcase' && selectedShowcase) {
+      return selectedShowcase.name;
+    }
+    return 'All Products';
+  };
+
+  // Get product count for a category
+  const getCategoryProductCount = (category: string) => {
+    return products.filter((p) => p.category === category).length;
+  };
+
+  // Handle add product
+  const handleAddProduct = () => {
+    router.push('/seller/add_product');
+  };
+
+  // Handle add showcase
+  const handleAddShowcase = () => {
+    router.push('/seller/showcases/new');
+  };
+
+  // Loading state
+  if (authLoading || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  // Render seller dashboard
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
@@ -182,17 +323,19 @@ export default async function SellerDashboard() {
         </div>
 
         <div className="grid grid-cols-1 gap-3 mb-8">
-          <StatCard 
-            title="New Review" 
-            count={stats.newReviews} 
+          <StatCard
+            title="New Review"
+            count={stats.newReviews}
             bgColor="bg-gray-200"
           />
         </div>
 
         {/* Shop Statistics Chart */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Your shop statistic</h2>
-          <p className="text-gray-600 mb-4">from 18 July - 25 July</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            Your shop statistic
+          </h2>
+          <p className="text-gray-600 mb-4">{getLast7DaysRange()}</p>
           <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center">
             <div className="text-gray-400 text-center">
               <div className="text-lg font-medium">Chart Placeholder</div>
@@ -246,10 +389,27 @@ export default async function SellerDashboard() {
                     ))
                   )}
                 </div>
+                {showcases.length === 0 && (
+                  <div className="text-center py-4 border-t border-gray-200 mt-3">
+                    <Folder className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                    <p className="text-xs text-gray-500 mb-3">
+                      No showcases yet
+                    </p>
+                    <button
+                      onClick={handleAddShowcase}
+                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs flex items-center gap-1 mx-auto"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Add Showcase
+                    </button>
+                  </div>
+                )}
               </div>
               {/* Categories Section */}
               <div className="bg-white rounded-lg border border-gray-200 p-4">
-                <h4 className="text-sm font-semibold text-gray-700 mb-3">Product Categories</h4>
+                <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                  Product Categories
+                </h4>
                 <div className="space-y-1">
                   {CATEGORIES.map(category => {
                     const count = products.filter(p => p.category === category).length;
