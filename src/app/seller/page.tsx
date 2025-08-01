@@ -1,41 +1,38 @@
-'use client';
 
-import { useEffect, useState } from 'react';
-import { Plus, Store, Folder, Tag } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/use-auth';
-import { useToast } from '@/hooks/use-toast';
+import { Plus, Store, Folder, Tag, Pencil, Trash2 } from 'lucide-react';
+import AddShowcaseInlineForm from './AddShowcaseInlineForm';
 import { getShopByUserId } from '@/models/shop';
 import { getProductsByShopId } from '@/models/product';
+import { getShowcasesByShopId, getAllShowcasesByShopId } from '@/models/showcase';
+import { Product } from '@/lib/types';
+import { redirect } from 'next/navigation';
+import { deleteProduct } from '@/models/product';
+import { revalidatePath } from 'next/cache';
 
-// Define Product type with showcase property
+
 type Showcase = { id: number; name: string; productCount?: number };
-type Product = {
-  id: number;
-  name: string;
-  images: string[];
-  stock: number;
-  category: string;
-  price: number;
-  showcase?: Showcase | null;
-};
-import { getShowcasesByShopId } from '@/models/showcase';
 
 // StatCard component
-const StatCard = ({
-  title,
-  count,
-  bgColor = 'bg-gray-200',
-}: {
-  title: string;
-  count: number;
-  bgColor?: string;
-}) => (
-  <div className={`${bgColor} rounded-lg p-4 text-center`}>
-    <div className="text-xs font-medium text-gray-700 mb-1">{title}</div>
-    <div className="text-2xl font-bold text-gray-900">{count}</div>
-  </div>
-);
+function StatCard({ title, count, bgColor = "bg-gray-200" }: { title: string; count: number; bgColor?: string }) {
+  return (
+    <div className={`${bgColor} rounded-lg p-4 text-center`}>
+      <div className="text-xs font-medium text-gray-700 mb-1">{title}</div>
+      <div className="text-2xl font-bold text-gray-900">{count}</div>
+    </div>
+  );
+}
+
+
+
+// Server action for deleting a product
+async function deleteProductAction(formData: FormData) {
+  'use server';
+  const id = Number(formData.get('productId'));
+  if (!id) return;
+  await deleteProduct(id);
+  revalidatePath('/seller');
+}
+
 
 // Make date in chart dynamic
 const getLast7DaysRange = () => {
@@ -52,37 +49,59 @@ const getLast7DaysRange = () => {
 };
 
 // ProductCard component
-const ProductCard = ({ product }: { product: Product }) => (
-  <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-    <div className="aspect-square bg-gray-200 flex items-center justify-center">
-      {product.images.length > 0 ? (
-        <img
-          src={product.images[0]}
-          alt={product.name}
-          className="w-full h-full object-cover"
-        />
-      ) : (
-        <div className="text-gray-400 text-center">
-          <div className="text-6xl font-light mb-2">600 × 600</div>
+function ProductCard({ product }: { product: Product }) {
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow relative">
+      <div className="aspect-square bg-gray-200 flex items-center justify-center">
+        {product.images.length > 0 ? (
+          <img 
+            src={product.images[0]} 
+            alt={product.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="text-gray-400 text-center">
+            <div className="text-6xl font-light mb-2">600 × 600</div>
+          </div>
+        )}
+      </div>
+      <div className="p-4 pb-10">
+        <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-sm text-gray-600">Stock: {product.stock}</span>
+          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+            {product.category}
+          </span>
         </div>
-      )}
-    </div>
-    <div className="p-4">
-      <h3 className="font-semibold text-gray-900 mb-1">{product.name}</h3>
-      <div className="flex items-center gap-2 mb-2">
-        <span className="text-sm text-gray-600">Stock: {product.stock}</span>
-        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-          {product.category}
-        </span>
+        <p className="text-blue-600 font-semibold">Rp {Number(product.price).toLocaleString('id-ID')}</p>
+      </div>
+      {/* Edit and Delete Buttons */}
+      <div className="absolute bottom-2 right-2 flex gap-2 z-10">
+        <a
+          href={`/seller/edit_product/${product.id}`}
+          className="bg-white border border-gray-300 rounded-full p-2 shadow hover:bg-gray-100 transition-colors"
+          title="Edit"
+        >
+          <Pencil className="w-4 h-4 text-gray-600" />
+        </a>
+        <form action={deleteProductAction}>
+          <input type="hidden" name="productId" value={product.id} />
+          <button
+            type="submit"
+            className="bg-white border border-gray-300 rounded-full p-2 shadow hover:bg-red-100 transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="w-4 h-4 text-red-600" />
+          </button>
+        </form>
       </div>
       <p className="text-blue-600 font-semibold">
         Rp {Number(product.price).toLocaleString('id-ID')}
       </p>
     </div>
-  </div>
-);
+  );
+}
 
-// Categories from your Prisma schema
 const CATEGORIES = [
   'ELECTRONICS',
   'FASHION',
@@ -95,40 +114,55 @@ const CATEGORIES = [
   'OTHER',
 ] as const;
 
-export default function SellerDashboard() {
-  const { user, loading: authLoading } = useAuth();
-  const router = useRouter();
-  const { toast } = useToast();
+import { cookies, headers } from 'next/headers';
 
-  // State variables
-  type Shop = {
-    id: number;
-    shopName: string;
-    description?: string;
-    imageUrl?: string | null;
-    // add other fields as needed
-  };
-  const [shopData, setShopData] = useState<Shop | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [showcases, setShowcases] = useState<Showcase[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filterType, setFilterType] = useState<'all' | 'category' | 'showcase'>(
-    'all'
-  );
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  // Use a proper type for showcase, assuming showcase has at least id and name
-  type Showcase = { id: number; name: string; productCount?: number };
-  const [selectedShowcase, setSelectedShowcase] = useState<Showcase | null>(
-    null
-  );
+export default async function SellerDashboard() {
+  // Get userId from request headers (set by middleware)
+  const headersList = await headers();
+  const userIdHeader = headersList.get('x-user-id');
+  const userId = userIdHeader ? Number(userIdHeader) : null;
+  if (!userId || isNaN(userId)) {
+    // Not authenticated, redirect to login
+    redirect('/login');
+  }
 
+  // Fetch shop data
+  const shop = await getShopByUserId(userId);
+  if (!shop) {
+    // Optionally, redirect to create shop page
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="bg-white p-8 rounded shadow text-center">
+          <h2 className="text-2xl font-bold mb-2">Shop not found</h2>
+          <p className="mb-4">You need to create a shop first.</p>
+          <a href="/seller/create-shop" className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Create Shop</a>
+        </div>
+      </div>
+    );
+  }
+  const productsRaw = await getProductsByShopId(shop.id);
+  // Fetch all showcases for the shop, not just those with products
+  const showcases = await getAllShowcasesByShopId(shop.id);
+  // Map products to match Product interface (id: string, showcase: string | undefined)
+  const products: Product[] = productsRaw.map((p: any) => {
+    const showcaseObj = p.showcase as { name?: string } | null | undefined;
+    return {
+      ...p,
+      id: String(p.id),
+      showcase: showcaseObj && typeof showcaseObj.name === 'string' ? showcaseObj.name : undefined,
+      stock: p.stock || 0,
+      category: p.category || 'OTHER',
+    };
+  });
   // Dummy stats for now
-  const [stats] = useState({
+  const stats = {
     newOrders: 5,
     paidOrders: 3,
     shippedOrders: 6,
     failedOrders: 2,
     newReviews: 0,
+  };
+  // Render seller dashboard (no client handlers, no state)
   });
 
   // Load shop data
@@ -259,10 +293,10 @@ export default function SellerDashboard() {
         {/* Shop Header */}
         <div className="flex items-center gap-6 mb-8">
           <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
-            {shopData?.imageUrl ? (
-              <img
-                src={shopData.imageUrl}
-                alt="Shop"
+            {shop.imageUrl ? (
+              <img 
+                src={shop.imageUrl} 
+                alt="Shop" 
                 className="w-full h-full rounded-full object-cover"
               />
             ) : (
@@ -274,11 +308,9 @@ export default function SellerDashboard() {
           </div>
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-              {shopData?.shopName || 'Your Shop'}
+              {shop.shopName || "Your Shop"}
             </h1>
-            <p className="text-gray-600">
-              {shopData?.description || 'Shop description'}
-            </p>
+            <p className="text-gray-600">{shop.description || "Shop description"}</p>
           </div>
         </div>
 
@@ -317,67 +349,46 @@ export default function SellerDashboard() {
           {/* Sidebar */}
           <div className="col-span-3">
             <div className="space-y-4">
-              {/* Combined Showcases Section with All Products */}
+              {/* Showcases Section with Add Showcase and All Products */}
               <div className="bg-white rounded-lg border border-gray-200 p-4">
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="text-sm font-semibold text-gray-700">
-                    Your Showcases
-                  </h4>
-                  <button
-                    onClick={handleAddShowcase}
-                    className="text-green-600 hover:text-green-700 p-1 rounded hover:bg-green-50"
-                    title="Add Showcase"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
+                  <h4 className="text-sm font-semibold text-gray-700">Showcase</h4>
+                  {/* Client-side Add Showcase form */}
+                  <AddShowcaseInlineForm shopId={shop.id} />
                 </div>
-
                 <div className="space-y-1">
                   {/* All Products as first item */}
-                  <div
-                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
-                      filterType === 'all'
-                        ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                        : 'hover:bg-gray-100'
-                    }`}
-                    onClick={showAllProducts}
+                  <a
+                    href="/seller"
+                    className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors bg-blue-100 text-blue-800 border border-blue-200`}
                   >
                     <Store className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm font-medium flex-1">
-                      All Products
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      ({products.length})
-                    </span>
-                  </div>
-
+                    <span className="text-sm font-medium flex-1">All Products</span>
+                    <span className="text-xs text-gray-500">({products.length})</span>
+                  </a>
                   {/* Separator line */}
                   {showcases.length > 0 && (
                     <div className="border-t border-gray-200 my-2"></div>
                   )}
-
                   {/* Showcase items */}
-                  {showcases.map((showcase) => (
-                    <div
-                      key={showcase.id}
-                      className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
-                        selectedShowcase?.id === showcase.id
-                          ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                          : 'hover:bg-gray-100'
-                      }`}
-                      onClick={() => selectShowcase(showcase)}
-                    >
-                      <Folder className="w-4 h-4 text-gray-500" />
-                      <span className="text-sm font-medium flex-1">
-                        {showcase.name}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        ({showcase.productCount})
-                      </span>
+                  {showcases.length === 0 ? (
+                    <div className="text-center py-4 border-t border-gray-200 mt-3">
+                      <Folder className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                      <p className="text-xs text-gray-500 mb-3">No showcases yet</p>
                     </div>
-                  ))}
+                  ) : (
+                    showcases.map(showcase => (
+                      <div
+                        key={showcase.id}
+                        className="flex items-center gap-2 p-2 rounded-lg"
+                      >
+                        <Folder className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm font-medium flex-1">{showcase.name}</span>
+                        <span className="text-xs text-gray-500">({showcase.productCount ?? 0})</span>
+                      </div>
+                    ))
+                  )}
                 </div>
-
                 {showcases.length === 0 && (
                   <div className="text-center py-4 border-t border-gray-200 mt-3">
                     <Folder className="w-6 h-6 text-gray-400 mx-auto mb-2" />
@@ -394,86 +405,69 @@ export default function SellerDashboard() {
                   </div>
                 )}
               </div>
-
               {/* Categories Section */}
               <div className="bg-white rounded-lg border border-gray-200 p-4">
                 <h4 className="text-sm font-semibold text-gray-700 mb-3">
                   Product Categories
                 </h4>
                 <div className="space-y-1">
-                  {CATEGORIES.map((category) => {
-                    const count = getCategoryProductCount(category);
+                  {CATEGORIES.map(category => {
+                    const count = products.filter(p => p.category === category).length;
                     return (
-                      <div
+                      <a
                         key={category}
-                        className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${
-                          selectedCategory === category
-                            ? 'bg-purple-100 text-purple-800 border border-purple-200'
-                            : 'hover:bg-gray-100'
-                        }`}
-                        onClick={() => selectCategory(category)}
+                        href={`/seller?category=${encodeURIComponent(category)}`}
+                        className="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors hover:bg-gray-100"
                       >
                         <Tag className="w-4 h-4 text-gray-500" />
                         <span className="text-sm font-medium flex-1 capitalize">
                           {category.toLowerCase()}
                         </span>
                         <span className="text-xs text-gray-500">({count})</span>
-                      </div>
+                      </a>
                     );
                   })}
                 </div>
               </div>
             </div>
           </div>
-
           {/* Products Area */}
           <div className="col-span-9">
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="flex justify-between items-center mb-6">
                 <div>
                   <h2 className="text-xl font-bold text-gray-900">
-                    {getFilterTitle()}
+                    All Products
                   </h2>
                   <p className="text-sm text-gray-600">
-                    {filteredProducts().length} product
-                    {filteredProducts().length !== 1 ? 's' : ''}
+                    {products.length} product{products.length !== 1 ? 's' : ''}
                   </p>
                 </div>
-                <button
-                  onClick={handleAddProduct}
+                <a
+                  href="/seller/add_product"
                   className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   Add Product
-                </button>
+                </a>
               </div>
-
               <div className="grid grid-cols-3 gap-4">
-                {filteredProducts().map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                {products.map((product: Product) => (
+                  <ProductCard 
+                    key={product.id} 
+                    product={product} 
+                  />
                 ))}
               </div>
-
-              {filteredProducts().length === 0 && (
+              {products.length === 0 && (
                 <div className="text-center py-12">
                   <Store className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">
                     No products found
                   </h3>
                   <p className="text-gray-600 mb-4">
-                    {filterType === 'category' && selectedCategory
-                      ? `No products in ${selectedCategory} category yet`
-                      : filterType === 'showcase' && selectedShowcase
-                      ? `No products in ${selectedShowcase?.name} showcase yet`
-                      : 'Start selling by adding your first product'}
+                    Start selling by adding your first product
                   </p>
-                  <button
-                    onClick={handleAddProduct}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg inline-flex items-center gap-2 transition-colors"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Product
-                  </button>
                 </div>
               )}
             </div>
