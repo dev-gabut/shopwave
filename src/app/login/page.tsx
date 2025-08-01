@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, Suspense } from 'react';
@@ -9,20 +8,37 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { Waves } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react'; // optional icon library
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  password: z
+    .string()
+    .min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 function LoginPageContent() {
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -40,7 +56,7 @@ function LoginPageContent() {
       await signin(data.email, data.password);
       toast({
         title: 'Sign In Successful',
-        description: "Welcome back!",
+        description: 'Welcome back!',
       });
       const redirect = searchParams?.get('redirect') || '/';
       router.push(redirect);
@@ -59,12 +75,16 @@ function LoginPageContent() {
     <div className="flex items-center justify-center min-h-[calc(100vh-200px)]">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-           <div className="flex justify-center items-center space-x-2 mb-4">
-              <Waves className="h-8 w-8 text-primary" />
-              <span className="text-3xl font-bold font-headline text-primary">ShopWave</span>
-            </div>
+          <div className="flex justify-center items-center space-x-2 mb-4">
+            <Waves className="h-8 w-8 text-primary" />
+            <span className="text-3xl font-bold font-headline text-primary">
+              ShopWave
+            </span>
+          </div>
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-          <CardDescription>Enter your credentials to access your account.</CardDescription>
+          <CardDescription>
+            Enter your credentials to access your account.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -89,7 +109,24 @@ function LoginPageContent() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="••••••••"
+                          {...field}
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
+                        </button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -102,7 +139,10 @@ function LoginPageContent() {
           </Form>
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-semibold text-primary hover:underline">
+            <Link
+              href="/signup"
+              className="font-semibold text-primary hover:underline"
+            >
               Sign up
             </Link>
           </p>
@@ -113,11 +153,9 @@ function LoginPageContent() {
 }
 
 export default function LoginPage() {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <LoginPageContent />
-        </Suspense>
-    )
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginPageContent />
+    </Suspense>
+  );
 }
-
-    
