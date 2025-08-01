@@ -7,17 +7,25 @@ export async function getAllShowcasesByShopId(shopId: number) {
   const showcases = await prisma.showcase.findMany({
     orderBy: { id: 'asc' },
     include: {
-      _count: { select: { products: true } }
-    }
+      _count: { select: { products: true } },
+    },
   });
   return showcases.map((showcase: any) => ({
     id: showcase.id,
     name: showcase.name,
-    productCount: showcase._count.products
+    productCount: showcase._count.products,
   }));
 }
 // Create a new showcase for a given shopId
-export async function createShowcaseBasedShopId({ shopId, name, parentId }: { shopId: number; name: string; parentId?: number }) {
+export async function createShowcaseBasedShopId({
+  shopId,
+  name,
+  parentId,
+}: {
+  shopId: number;
+  name: string;
+  parentId?: number;
+}) {
   // Attach the new showcase to the shop by creating a productless showcase
   // (Showcase is not directly related to shop, but to products in shop)
   // So we just create a showcase, and products in this shop can be assigned to it later
@@ -46,21 +54,30 @@ export async function getShowcasesByShopId(shopId: number) {
     where: {
       products: {
         some: {
-          shopId: shopId
-        }
-      }
+          shopId: shopId,
+        },
+      },
     },
     include: {
       _count: {
-        select: { products: true }
-      }
-    }
+        select: { products: true },
+      },
+    },
   });
 
   // Add explicit type to showcase parameter
   return showcases.map((showcase: ShowcaseWithCount) => ({
     id: showcase.id,
     name: showcase.name,
-    productCount: showcase._count.products
+    productCount: showcase._count.products,
   }));
 }
+
+// delete showcase
+export async function deleteShowCaseById(showCaseId: number) {
+  return prisma.showcase.delete({
+    where: { id: showCaseId },
+  });
+}
+
+
