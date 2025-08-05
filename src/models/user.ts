@@ -23,7 +23,7 @@ type Address = {
   isDefault: boolean;
 };
 
-export async function loginUser({ email, password }: { email: string; password: string }) {
+export async function signIn({ email, password }: { email: string; password: string }) {
   const dbUser = await prisma.user.findUnique({
     where: { email },
     include: { addresses: true },

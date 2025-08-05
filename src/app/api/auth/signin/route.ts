@@ -1,11 +1,11 @@
 //imports
 import { NextRequest, NextResponse } from 'next/server';
-import { loginUser } from '@/models/user';
+import { signIn } from '@/models/user';
 
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
-    const user = await loginUser({ email, password });
+    const user = await signIn({ email, password });
     
     // Create response
     const response = NextResponse.json({
