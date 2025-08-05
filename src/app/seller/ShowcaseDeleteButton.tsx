@@ -1,8 +1,11 @@
 'use client';
 
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { deleteShowCaseAction } from '@/app/seller/action/showcase';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { Showcase } from '@prisma/client';
+import { Pencil, Trash2 } from 'lucide-react';
+import { EditShowcaseModal } from '@/components/edit-showcase-modal';
 
 export function ShowcaseDeleteButton({ showcaseId }: { showcaseId: number }) {
   const router = useRouter();
@@ -20,8 +23,22 @@ export function ShowcaseDeleteButton({ showcaseId }: { showcaseId: number }) {
   };
 
   return (
-    <DropdownMenuItem className="text-red-500" onClick={handleDelete}>
-      Delete
-    </DropdownMenuItem>
+    <button className="text-red-500 " onClick={handleDelete}>
+      <Trash2 className="w-4 h-4 text-red-600" />
+    </button>
+  );
+}
+export function ShowcaseEditButton({ showcase }: { showcase: Showcase }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button onClick={() => setOpen(true)} className="text-blue-600">
+        <Pencil className="w-4 h-4 text-blue-600" />
+      </button>
+      {open && (
+        <EditShowcaseModal showcase={showcase} onClose={() => setOpen(false)} />
+      )}
+    </>
   );
 }

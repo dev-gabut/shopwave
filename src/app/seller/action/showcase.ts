@@ -1,6 +1,6 @@
 'use server';
 
-import { deleteShowCaseById } from '@/models/showcase';
+import { deleteShowCaseById, updateShowCaseById } from '@/models/showcase';
 import { revalidatePath } from 'next/cache';
 
 export async function deleteShowCaseAction(showCaseId: number) {
@@ -8,3 +8,7 @@ export async function deleteShowCaseAction(showCaseId: number) {
   revalidatePath('/seller'); // atau path lain yang perlu direfresh
 }
 
+export async function updateShowCaseAction(data: { id: number; name: string }) {
+  await updateShowCaseById(data);
+  revalidatePath('/seller');
+}
