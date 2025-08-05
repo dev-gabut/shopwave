@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { Product } from '@/lib/types';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice } from '@/lib/client-utils';
 import { ArrowRight } from 'lucide-react';
 
 interface ProductCardProps {
