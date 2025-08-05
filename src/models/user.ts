@@ -11,7 +11,7 @@ export interface User {
   role: 'BUYER' | 'SELLER' | 'ADMIN';
   imageUrl?: string;
   addresses?: Address[];
-};
+}
 
 type Address = {
   id: number;
@@ -23,7 +23,13 @@ type Address = {
   isDefault: boolean;
 };
 
-export async function signIn({ email, password }: { email: string; password: string }) {
+export async function signIn({
+  email,
+  password,
+}: {
+  email: string;
+  password: string;
+}) {
   const dbUser = await prisma.user.findUnique({
     where: { email },
     include: { addresses: true },
@@ -58,5 +64,38 @@ export async function signIn({ email, password }: { email: string; password: str
       isDefault: address.isDefault,
     })),
     token,
+  };
+}
+
+export async function signUp({
+  name,
+  email,
+  password,
+}: {
+  name: string;
+  email: string;
+  password: string;
+}) {
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+  if (existingUser) {
+    throw new Error('Email already in use');
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const newUser = await prisma.user.create({
+    data: {
+      name,
+      email,
+      password: hashedPassword,
+    },
+  });
+
+  return {
+    id: newUser.id,
+    name: newUser.name,
+    email: newUser.email,
   };
 }
