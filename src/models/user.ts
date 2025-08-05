@@ -32,7 +32,7 @@ export async function signIn({ email, password }: { email: string; password: str
   const valid = await bcrypt.compare(password, dbUser.password);
   if (!valid) throw new Error('Invalid password');
 
-  // Generate JWT token
+  // Generate JWT tokens
   const token = jwt.sign(
     {
       sub: dbUser.id,
