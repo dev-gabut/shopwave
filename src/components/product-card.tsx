@@ -35,7 +35,7 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.name}
           </h3>
           <p className="text-sm text-muted-foreground mt-2">
-            Shop: {product.shopName}
+            {product.shopName}
           </p>
         </CardContent>
         <CardFooter className="p-4 pt-0 flex justify-between items-center">

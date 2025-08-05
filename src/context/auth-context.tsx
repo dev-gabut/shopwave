@@ -5,21 +5,23 @@ import { User } from '@/models/user';
 import { getHeaders } from '@/lib/server-utils';
 
 interface AuthContextType {
-	user: User | null;
-	loading: boolean;
-	signin: (email: string, pass: string) => Promise<void>;
-	signup: (email: string, pass: string) => Promise<void>;
-	signout: () => Promise<void>;
+  user: User | null;
+  loading: boolean;
+  signin: (email: string, pass: string) => Promise<void>;
+  signup: (name: string, email: string, pass: string) => Promise<void>;
+  signout: () => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined
+);
 
 // Authentication is handled via API routes and HTTP-only JWT cookies.
 import { useEffect } from 'react';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-	const [user, setUser] = useState<User | null>(null);
-	const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
 	// Restore user from cookie/session on mount
 	useEffect(() => {
@@ -45,46 +47,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		fetchUser();
 	}, []);
 
-	// Call server-side loginUser for login
-	const signin = async (email: string, pass: string) => {
-		setLoading(true);
-		try {
-			const res = await fetch('/api/auth/signin', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({ email, password: pass }),
-			});
-			const data = await res.json();
-			if (!res.ok) {
-				throw new Error(data.error || 'Signin failed');
-			}
-			setUser(data.user);
-		} catch (err) {
-			setLoading(false);
-			throw err;
-		}
-		setLoading(false);
-	};
+  // Call server-side loginUser for login
+  const signin = async (email: string, pass: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password: pass }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Signin failed');
+      }
+      setUser(data.user);
+    } catch (err) {
+      setLoading(false);
+      throw err;
+    }
+    setLoading(false);
+  };
 
-	// Signup is not implemented in this prototype.
-	const signup = async () => {
-		throw new Error('Signup is disabled. Use seeded users.');
-	};
-	const signout = async () => {
-		return fetch('/api/auth/signout').then(() => {
-			setUser(null);
-		});
-	};
+  // Signup is not implemented in this prototype.
+  const signup = async (name: string, email: string, pass: string) => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password: pass }),
+      });
 
-	const value = {
-		user,
-		loading,
-		signin,
-		signup,
-		signout,
-	};
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Signup failed');
+      }
+    } catch (err) {
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-	return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  const signout = async () => {
+    return fetch('/api/auth/signout').then(() => {
+      setUser(null);
+    });
+  };
+
+  const value = {
+    user,
+    loading,
+    signin,
+    signup,
+    signout,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
