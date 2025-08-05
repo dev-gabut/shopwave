@@ -38,7 +38,13 @@ export function EditShowcaseModal({
             Cancel
           </button>
           <button
-            onClick={handleUpdate}
+            onClick={() => {
+              if (name.trim() === '') {
+                alert('Showcase name cannot be empty');
+                return;
+              }
+              handleUpdate();
+            }}
             className="px-4 py-2 bg-blue-600 text-white rounded"
           >
             Update
