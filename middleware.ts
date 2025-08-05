@@ -31,6 +31,7 @@ export async function middleware(request: NextRequest) {
 		const payload = await verifyToken(token);
 		const requestHeaders = new Headers(request.headers);
 		requestHeaders.set('x-user-id', String(payload?.sub) || '');
+		requestHeaders.set('x-user-name', String(payload?.name) || '');
 		requestHeaders.set('x-user-role', String(payload?.role) || '');
 		requestHeaders.set('x-user-email', String(payload?.email) || '');
 		requestHeaders.set('x-user-image', String(payload?.imageUrl) || '');
