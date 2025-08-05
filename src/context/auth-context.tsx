@@ -26,14 +26,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		async function fetchUser() {
 			setLoading(true);
 			try {
-				const headers = await getHeaders() as any;
-				setUser({
-					id: Number(headers.find(([key, value]: [string, string]) => key === "x-user-id")?.[1] || ''),
-					imageUrl: headers.find(([key, value]: [string, string]) => key === "x-user-image")?.[1] || '',
-					email: headers.find(([key, value]: [string, string]) => key === "x-user-email")?.[1] || '',
-					role: headers.find(([key, value]: [string, string]) => key === "x-user-role")?.[1] as 'BUYER' | 'SELLER' | 'ADMIN',
-					addresses: [],
-				});
+				const headers = (await getHeaders()) as any;
+				if (headers.find(([key, _]: [string, string]) => key === 'x-user-id')?.[1]) {
+					setUser({
+						id: Number(headers.find(([key, _]: [string, string]) => key === 'x-user-id')?.[1] || ''),
+						imageUrl: headers.find(([key, _]: [string, string]) => key === 'x-user-image')?.[1] || '',
+						email: headers.find(([key, _]: [string, string]) => key === 'x-user-email')?.[1] || '',
+						role: headers.find(([key, _]: [string, string]) => key === 'x-user-role')?.[1] as 'BUYER' | 'SELLER' | 'ADMIN',
+						addresses: [],
+					});
+				}
 			} catch {
 				setUser(null);
 			} finally {
