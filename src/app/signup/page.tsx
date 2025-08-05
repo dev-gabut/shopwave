@@ -45,7 +45,7 @@ export default function SignupPage() {
         title: 'Account Created',
         description: 'Welcome! Please sign in to continue.',
       });
-      router.push('/login');
+      router.push('/signin');
     } catch (error) {
       console.error(error);
       toast({
@@ -118,7 +118,7 @@ export default function SignupPage() {
           </Form>
            <p className="mt-6 text-center text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link href="/login" className="font-semibold text-primary hover:underline">
+            <Link href="/signin" className="font-semibold text-primary hover:underline">
               Sign In
             </Link>
           </p>

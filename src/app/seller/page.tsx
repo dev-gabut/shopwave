@@ -133,7 +133,7 @@ export default async function SellerDashboard() {
   const userId = userIdHeader ? Number(userIdHeader) : null;
   if (!userId || isNaN(userId)) {
     // Not authenticated, redirect to login
-    redirect('/login');
+    redirect('/signin');
   }
 
   // Fetch shop data

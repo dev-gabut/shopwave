@@ -19,7 +19,7 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login?redirect=/account');
+      router.push('/signin?redirect=/account');
     }
   }, [user, loading, router]);
   

@@ -33,7 +33,7 @@ export default async function AddProductPage() {
   const userIdHeader = headersList.get('x-user-id');
   const userId = userIdHeader ? Number(userIdHeader) : null;
   if (!userId || isNaN(userId)) {
-    redirect('/login');
+    redirect('/signin');
   }
   const shop = await getShopByUserId(userId);
   if (!shop) {

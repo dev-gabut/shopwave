@@ -36,7 +36,7 @@ export async function middleware(request: NextRequest) {
 		requestHeaders.set('x-user-image', String(payload?.imageUrl) || '');
 
 		if (!payload) {
-			return NextResponse.redirect(new URL('/login', request.url));
+			return NextResponse.redirect(new URL('/signin', request.url));
 		}
 		return NextResponse.next({
 			request: {
