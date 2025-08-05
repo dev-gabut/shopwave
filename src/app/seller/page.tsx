@@ -8,7 +8,10 @@ import {
   EllipsisVertical,
 } from 'lucide-react';
 import AddShowcaseInlineForm from './AddShowcaseInlineForm';
-import { ShowcaseDeleteButton } from '@/app/seller/ShowcaseDeleteButton';
+import {
+  ShowcaseDeleteButton,
+  ShowcaseEditButton,
+} from '@/app/seller/ShowcaseDeleteButton';
 import { getShopByUserId } from '@/models/shop';
 import { getProductsByShopId } from '@/models/product';
 import {
@@ -177,6 +180,24 @@ export default async function SellerDashboard() {
     failedOrders: 2,
     newReviews: 0,
   };
+
+  // variable to make date dynamic
+  const getLast7DaysRange = () => {
+    const endDate = new Date(); // Hari ini
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - 6);
+
+    const options: Intl.DateTimeFormatOptions = {
+      day: 'numeric',
+      month: 'long',
+    };
+
+    const formattedStart = startDate.toLocaleDateString('en-GB', options);
+    const formattedEnd = endDate.toLocaleDateString('en-GB', options);
+
+    return `from ${formattedStart} - ${formattedEnd}`;
+  };
+
   // Render seller dashboard (no client handlers, no state)
   return (
     <div className="min-h-screen bg-gray-50">
@@ -228,7 +249,7 @@ export default async function SellerDashboard() {
           <h2 className="text-xl font-bold text-gray-900 mb-2">
             Your shop statistic
           </h2>
-          <p className="text-gray-600 mb-4">from 18 July - 25 July</p>
+          <p className="text-gray-600 mb-4">{getLast7DaysRange()}</p>
           <div className="h-48 bg-gray-100 rounded-lg flex items-center justify-center">
             <div className="text-gray-400 text-center">
               <div className="text-lg font-medium">Chart Placeholder</div>
@@ -292,18 +313,17 @@ export default async function SellerDashboard() {
                         <span className="text-xs text-gray-500">
                           ({showcase.productCount ?? 0})
                         </span>
-
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button className="p-1 rounded hover:bg-gray-200">
-                              <EllipsisVertical className="w-4 h-4 text-gray-500" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <ShowcaseDeleteButton showcaseId={showcase.id} />
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <span>
+                          <ShowcaseEditButton
+                            showcase={{
+                              ...showcase,
+                              parentId: showcase.id || null,
+                            }}
+                          />
+                        </span>
+                        <span>
+                          <ShowcaseDeleteButton showcaseId={showcase.id} />
+                        </span>
                       </div>
                     ))
                   )}

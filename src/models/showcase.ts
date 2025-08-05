@@ -80,4 +80,9 @@ export async function deleteShowCaseById(showCaseId: number) {
   });
 }
 
-
+export async function updateShowCaseById(data: { id: number; name: string }) {
+  return prisma.showcase.update({
+    where: { id: data.id },
+    data: { name: data.name },
+  });
+}
