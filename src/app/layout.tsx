@@ -4,7 +4,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CartProvider } from '@/context/cart-context';
 import { Toaster } from "@/components/ui/toaster";
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/client-utils';
 import { AuthProvider } from '@/context/auth-context';
 
 export const metadata: Metadata = {

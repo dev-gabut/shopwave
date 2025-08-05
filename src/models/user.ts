@@ -1,16 +1,16 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { prisma } from '@/lib/prisma';
-import { cookies } from 'next/headers';
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
 // Define the Address type explicitly
-type User = {
+export interface User {
   id: number;
   email: string;
   role: 'BUYER' | 'SELLER' | 'ADMIN';
   imageUrl?: string;
+  addresses?: Address[];
 };
 
 type Address = {
@@ -37,6 +37,8 @@ export async function loginUser({ email, password }: { email: string; password: 
     {
       sub: dbUser.id,
       role: dbUser.role,
+      email: dbUser.email,
+      imageUrl: dbUser.imageUrl,
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24, // 1 day expiry
     },
     JWT_SECRET

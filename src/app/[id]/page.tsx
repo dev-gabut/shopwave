@@ -5,7 +5,7 @@ import Image from 'next/image';
 
 // *************** IMPORT MODULE ***************
 import { Separator } from '@/components/ui/separator';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice } from '@/lib/client-utils';
 import { ProductCard } from '@/components/product-card';
 import { AddToCartButton } from './add-to-cart-button';
 import type { Metadata } from 'next';
