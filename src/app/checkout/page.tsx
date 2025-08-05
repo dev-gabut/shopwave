@@ -283,8 +283,8 @@ export default function CheckoutPage() {
                         type="button" 
                         onClick={handleCreateAddress}
                         disabled={isCreatingAddress}
-                        className="w-full"
-                        variant="outline"
+                        className="w-auto px-6 mx-auto block"
+                        size="sm"
                       >
                         {isCreatingAddress ? 'Creating Address...' : 'Create Address'}
                       </Button>
@@ -294,8 +294,8 @@ export default function CheckoutPage() {
 
                 <Button 
                   type="submit" 
-                  className="w-full" 
-                  size="lg" 
+                  className="w-auto px-8 mx-auto block" 
+                  size="sm" 
                   disabled={isSubmitting || useNewAddress}
                 >
                   {isSubmitting ? 'Processing...' : useNewAddress ? 'Create Address First' : `Complete Order - ${formatPrice(cartTotal)}`}
