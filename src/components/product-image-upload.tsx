@@ -1,9 +1,9 @@
-"use client";
-import React, { useRef, useState } from "react";
-import { Upload, X, ImageIcon, AlertCircle } from "lucide-react";
+'use client';
+import React, { useRef, useState } from 'react';
+import { Upload, X, ImageIcon, AlertCircle } from 'lucide-react';
 
 export type ProductImage = {
-  id: number;
+  id: string;
   file: File;
   url: string | ArrayBuffer | null;
   isPrimary: boolean;
@@ -13,8 +13,8 @@ export type ProductImageUploadProps = {
   images: ProductImage[];
   setImages: React.Dispatch<React.SetStateAction<ProductImage[]>>;
   errors?: string;
-  setPrimaryImage: (imageId: number) => void;
-  removeImage: (imageId: number) => void;
+  setPrimaryImage: (imageId: string) => void;
+  removeImage: (imageId: string) => void;
 };
 
 export default function ProductImageUpload({
@@ -29,18 +29,18 @@ export default function ProductImageUpload({
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0 || isProcessing) return;
-    
-    const files = Array.from(e.target.files).filter(file => 
-      file.type.startsWith("image/")
+
+    const files = Array.from(e.target.files).filter((file) =>
+      file.type.startsWith('image/')
     );
-    
+
     if (files.length === 0) return;
 
     setIsProcessing(true);
-    
+
     const processFiles = async () => {
       const newImages: ProductImage[] = [];
-      
+
       for (const file of files) {
         const image = await new Promise<ProductImage>((resolve) => {
           const reader = new FileReader();
@@ -48,7 +48,8 @@ export default function ProductImageUpload({
             resolve({
               id: Date.now() + Math.random(),
               file,
-              url: typeof ev.target?.result === "string" ? ev.target.result : "",
+              url:
+                typeof ev.target?.result === 'string' ? ev.target.result : '',
               isPrimary: false,
             });
           };
@@ -67,9 +68,9 @@ export default function ProductImageUpload({
 
       // Reset input using DOM manipulation
       if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+        fileInputRef.current.value = '';
       }
-      
+
       setIsProcessing(false);
     };
 
@@ -79,27 +80,29 @@ export default function ProductImageUpload({
   const triggerFileInput = () => {
     if (isProcessing) return;
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = '';
       fileInputRef.current.click();
     }
   };
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-5">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">Product Images *</h3>
+      <h3 className="text-sm font-semibold text-gray-900 mb-3">
+        Product Images *
+      </h3>
       {/* Upload Area */}
       <div className="mb-4">
         <div
           className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
             errors
-              ? "border-red-300 bg-red-50"
-              : "border-gray-300 hover:border-gray-400 hover:bg-gray-50"
-          } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
+              ? 'border-red-300 bg-red-50'
+              : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+          } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={triggerFileInput}
         >
           <Upload className="w-6 h-6 text-gray-400 mx-auto mb-2" />
           <p className="text-xs text-gray-600">
-            {isProcessing ? "Processing images..." : "Click to upload images"}
+            {isProcessing ? 'Processing images...' : 'Click to upload images'}
           </p>
           <p className="text-xs text-gray-500">PNG, JPG up to 10MB</p>
         </div>
@@ -126,7 +129,7 @@ export default function ProductImageUpload({
             <div key={image.id} className="relative group">
               <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                 <img
-                  src={typeof image.url === "string" ? image.url : ""}
+                  src={typeof image.url === 'string' ? image.url : ''}
                   alt="Product preview"
                   className="w-full h-full object-cover"
                 />

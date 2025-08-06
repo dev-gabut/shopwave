@@ -18,7 +18,7 @@ import {
   ProductsArea,
 } from '@/components/seller_dashboard';
 
-type Showcase = { id: number; name: string; productCount?: number };
+type Showcase = { id: string; name: string; productCount?: number };
 
 export default async function SellerDashboard() {
   const cookieList = await cookies();

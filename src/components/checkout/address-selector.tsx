@@ -1,11 +1,23 @@
 'use client';
 
 import { Control, UseFormSetValue } from 'react-hook-form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 
 interface Address {
-  id: number;
+  id: string;
   label: string;
   address: string;
   city: string;
@@ -36,7 +48,13 @@ interface AddressSelectorProps {
   setValue: UseFormSetValue<CheckoutFormValues>;
 }
 
-export function AddressSelector({ addresses = [], control, useNewAddress, setUseNewAddress, setValue }: AddressSelectorProps) {
+export function AddressSelector({
+  addresses = [],
+  control,
+  useNewAddress,
+  setUseNewAddress,
+  setValue,
+}: AddressSelectorProps) {
   if (!Array.isArray(addresses)) {
     console.warn('AddressSelector: addresses is not an array:', addresses);
     return null;
@@ -61,7 +79,7 @@ export function AddressSelector({ addresses = [], control, useNewAddress, setUse
               Use existing address
             </label>
           </div>
-          
+
           {!useNewAddress && (
             <FormField
               control={control}
@@ -69,8 +87,8 @@ export function AddressSelector({ addresses = [], control, useNewAddress, setUse
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Select Address</FormLabel>
-                  <Select 
-                    onValueChange={(value) => field.onChange(parseInt(value))} 
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
                     value={field.value?.toString() || ''}
                     key={`address-select-${addresses.length}-${field.value}`} // Force re-render when addresses change or value changes
                   >
@@ -81,16 +99,24 @@ export function AddressSelector({ addresses = [], control, useNewAddress, setUse
                     </FormControl>
                     <SelectContent>
                       {addresses?.map((address) => (
-                        <SelectItem key={address.id} value={address.id.toString()}>
+                        <SelectItem
+                          key={address.id}
+                          value={address.id.toString()}
+                        >
                           <div className="flex flex-col text-left w-full">
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">{address.label}</span>
+                              <span className="font-medium">
+                                {address.label}
+                              </span>
                               {address.isDefault && (
-                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Default</span>
+                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                  Default
+                                </span>
                               )}
                             </div>
                             <span className="text-sm text-muted-foreground">
-                              {address.address}, {address.city}, {address.province} {address.postalCode}
+                              {address.address}, {address.city},{' '}
+                              {address.province} {address.postalCode}
                             </span>
                           </div>
                         </SelectItem>
@@ -104,7 +130,7 @@ export function AddressSelector({ addresses = [], control, useNewAddress, setUse
           )}
         </>
       )}
-      
+
       <div className="flex items-center space-x-2">
         <input
           type="radio"
@@ -117,7 +143,9 @@ export function AddressSelector({ addresses = [], control, useNewAddress, setUse
           className="h-4 w-4"
         />
         <label htmlFor="new-address" className="font-medium">
-          {addresses && addresses.length > 0 ? 'Add new address' : 'Add delivery address'}
+          {addresses && addresses.length > 0
+            ? 'Add new address'
+            : 'Add delivery address'}
         </label>
       </div>
     </div>
