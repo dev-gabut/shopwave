@@ -1,4 +1,5 @@
 import { headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getAllShowcasesByShopId } from '@/models/showcase';
 import { getShopByUserId } from '@/models/shop';
@@ -8,7 +9,7 @@ import ImageUploadWrapper from '@/components/image-upload-wrapper';
 
 // Showcase type
 type Showcase = {
-  id: number;
+  id: string;
   name: string;
   productCount: number;
 };
@@ -29,11 +30,14 @@ const CATEGORIES = [
 export default async function AddProductPage() {
   // Get userId from request headers (set by middleware)
   const headersList = await headers();
-  const userIdHeader = headersList.get('x-user-id');
-  const userId = userIdHeader ? Number(userIdHeader) : null;
-  if (!userId || isNaN(userId)) {
+  const cookieList = await cookies();
+  const userIdHeader = cookieList.get('ShopWaveUserId')?.value;
+  const userId = userIdHeader;
+  if (!userId) {
+    // Not authenticated, redirect to login
     redirect('/signin');
   }
+
   const shop = await getShopByUserId(userId);
   if (!shop) {
     redirect('/seller');
