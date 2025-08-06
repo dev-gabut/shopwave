@@ -1,10 +1,15 @@
-
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,38 +21,49 @@ export default function AccountPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
       router.push('/signin?redirect=/account');
     }
   }, [user, loading, router]);
-  
+
   const handleSaveChanges = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
     // In a real app, you would have logic to update user details.
     setTimeout(() => {
-        toast({
-            title: 'Changes Saved!',
-            description: 'Your account details have been updated.',
-        });
-        setIsSaving(false);
+      toast({
+        title: 'Changes Saved!',
+        description: 'Your account details have been updated.',
+      });
+      setIsSaving(false);
     }, 1000);
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedImage(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
 
   if (loading || !user) {
     return (
-        <div className="flex justify-center items-center h-64">
-            <p>Loading...</p>
-        </div>
-    )
+      <div className="flex justify-center items-center h-64">
+        <p>Loading...</p>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-4xl font-headline font-bold mb-8">Account Settings</h1>
+      <h1 className="text-4xl font-headline font-bold mb-8">
+        Account Settings
+      </h1>
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
@@ -56,16 +72,37 @@ export default function AccountPage() {
         <CardContent>
           <form onSubmit={handleSaveChanges} className="space-y-6">
             <div className="space-y-2">
+              <Label htmlFor="profile-picture">Profile Picture</Label>
+              {(previewUrl || user.imageUrl) && (
+                <img
+                  src={previewUrl || user.imageUrl}
+                  alt="Profile"
+                  className="w-24 h-24 rounded-full object-cover mb-2"
+                />
+              )}
+              <Input
+                id="profile-picture"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <Input id="email" type="email" value={user.email} disabled />
             </div>
-            
+
             <Separator />
-            
+
             <h3 className="font-semibold text-lg pt-2">Change Password</h3>
             <div className="space-y-2">
               <Label htmlFor="current-password">Current Password</Label>
-              <Input id="current-password" type="password" placeholder="••••••••" />
+              <Input
+                id="current-password"
+                type="password"
+                placeholder="••••••••"
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="new-password">New Password</Label>
@@ -73,13 +110,17 @@ export default function AccountPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirm New Password</Label>
-              <Input id="confirm-password" type="password" placeholder="••••••••" />
+              <Input
+                id="confirm-password"
+                type="password"
+                placeholder="••••••••"
+              />
             </div>
 
             <div className="flex justify-end pt-4">
-                <Button type="submit" disabled={isSaving}>
-                    {isSaving ? 'Saving...' : 'Save Changes'}
-                </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
             </div>
           </form>
         </CardContent>

@@ -1,7 +1,7 @@
 import { Store } from 'lucide-react';
 
 interface Shop {
-  id: number;
+  id: string;
   shopName: string;
   description: string;
   imageUrl?: string | null;

@@ -1,12 +1,12 @@
 // Update product
 export type UpdateProductInput = {
-  id: number;
+  id: string;
   name?: string;
   description?: string;
   price?: number;
   stock?: number;
   category?: Category;
-  showcaseId?: number | null;
+  showcaseId?: string | null;
 };
 
 export async function updateProduct({ id, ...data }: UpdateProductInput) {
@@ -21,7 +21,7 @@ export async function updateProduct({ id, ...data }: UpdateProductInput) {
 }
 
 // Delete product
-export async function deleteProduct(id: number) {
+export async function deleteProduct(id: string) {
   // Delete all related images first to avoid foreign key constraint error
   await prisma.productImage.deleteMany({ where: { productId: id } });
   return prisma.product.delete({
@@ -50,13 +50,13 @@ declare module '../lib/types' {
     showcase?: string;
     category?: string;
     stock?: number;
-    showcaseId?: number | null;
+    showcaseId?: string | null;
   }
 }
 
 // Helper function to map Prisma product to our Product type
 function mapToProduct(p: {
-  id: number;
+  id: string;
   name: string;
   description: string;
   price: number | { toString: () => string }; // Handle Decimal type
@@ -65,12 +65,11 @@ function mapToProduct(p: {
   showcase?: { name: string } | null;
   category?: string;
   stock?: number;
-  showcaseId?: number | null;
+  showcaseId?: string | null;
 }): Product {
   // Convert price to number safely
-  const priceValue = typeof p.price === 'number' 
-    ? p.price 
-    : Number(p.price.toString());
+  const priceValue =
+    typeof p.price === 'number' ? p.price : Number(p.price.toString());
 
   const product: Product = {
     id: p.id.toString(),
@@ -78,7 +77,7 @@ function mapToProduct(p: {
     slug: '', // slug is empty
     description: p.description,
     price: priceValue,
-    images: p.images.map(img => img.imageUrl),
+    images: p.images.map((img) => img.imageUrl),
     relatedProducts: [],
     shopName: p.shop.shopName,
   };
@@ -93,23 +92,23 @@ function mapToProduct(p: {
 }
 
 // Get products by shopId
-export async function getProductsByShopId(shopId: number): Promise<Product[]> {
+export async function getProductsByShopId(shopId: string): Promise<Product[]> {
   const prismaProducts = await prisma.product.findMany({
     where: { shopId },
     include: { images: true, shop: true, showcase: true },
   });
-  
+
   return prismaProducts.map(mapToProduct);
 }
 
 export type CreateProductInput = {
-  shopId: number;
+  shopId: string;
   name: string;
   description: string;
   price: number;
   stock: number;
   category: Category;
-  showcaseId?: number | null;
+  showcaseId?: string | null;
   images: { imageUrl: string; isPrimary?: boolean }[];
 };
 
@@ -121,7 +120,7 @@ export async function createProduct({
   stock,
   category,
   showcaseId,
-  images
+  images,
 }: CreateProductInput) {
   // Validate shop exists
   const shop = await prisma.shop.findUnique({ where: { id: shopId } });
@@ -138,7 +137,7 @@ export async function createProduct({
       category: category, // Directly use the enum value
       showcaseId: showcaseId ?? null,
       images: {
-        create: images.map(img => ({
+        create: images.map((img) => ({
           imageUrl: img.imageUrl,
           isPrimary: img.isPrimary || false,
         })),
@@ -154,67 +153,71 @@ export async function createProduct({
 
 export async function getProducts(query?: string): Promise<Product[]> {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
   // Fixed where clause with proper Prisma types
-  const where = query ? {
-    OR: [
-      { 
-        name: { 
-          contains: query, 
-          mode: 'insensitive' as const 
-        } 
-      },
-      { 
-        description: { 
-          contains: query, 
-          mode: 'insensitive' as const 
-        } 
-      },
-    ],
-  } : undefined;
-  
+  const where = query
+    ? {
+        OR: [
+          {
+            name: {
+              contains: query,
+              mode: 'insensitive' as const,
+            },
+          },
+          {
+            description: {
+              contains: query,
+              mode: 'insensitive' as const,
+            },
+          },
+        ],
+      }
+    : undefined;
+
   const prismaProducts = await prisma.product.findMany({
     where,
     include: { images: true, shop: true, showcase: true },
   });
-  
+
   return prismaProducts.map(mapToProduct);
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
   const product = await prisma.product.findUnique({
-    where: { id: Number(id) },
+    where: { id },
     include: { images: true, shop: true, showcase: true },
   });
-  
+
   return product ? mapToProduct(product) : null;
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
   // Fallback to name search since we don't have slug field
   const product = await prisma.product.findFirst({
     where: { name: slug },
     include: { images: true, shop: true, showcase: true },
   });
-  
+
   return product ? mapToProduct(product) : null;
 }
 
-export async function getRelatedProducts(productId: string): Promise<Product[]> {
+export async function getRelatedProducts(
+  productId: string
+): Promise<Product[]> {
   const product = await prisma.product.findUnique({
-    where: { id: Number(productId) },
+    where: { id: productId },
     include: { images: true, shop: true, showcase: true },
   });
-  
+
   if (!product) return [];
-  
+
   const relatedProducts = await prisma.product.findMany({
     where: {
       category: product.category,
@@ -222,9 +225,9 @@ export async function getRelatedProducts(productId: string): Promise<Product[]> 
     },
     include: { images: true, shop: true, showcase: true },
   });
-  
+
   // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
   return relatedProducts.map(mapToProduct);
 }

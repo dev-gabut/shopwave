@@ -10,7 +10,7 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String      @id @default(uuid())
   name      String
   email     String   @unique
   password  String
@@ -25,9 +25,9 @@ model User {
 }
 
 model Address {
-  id         Int     @id @default(autoincrement())
+  id         String     @id @default(uuid())
   user       User    @relation(fields: [userId], references: [id])
-  userId     Int
+  userId     String
   label      String
   address    String
   city       String
@@ -38,9 +38,9 @@ model Address {
 }
 
 model Shop {
-  id          Int      @id @default(autoincrement())
+  id          String      @id @default(uuid())
   user        User     @relation(fields: [userId], references: [id])
-  userId      Int      @unique
+  userId      String      @unique
   shopName    String
   description String
   imageUrl    String?  
@@ -49,24 +49,24 @@ model Shop {
 }
 
 model Showcase {
-  id       Int        @id @default(autoincrement())
+  id       String        @id @default(uuid())
   name     String
-  parentId Int?
+  parentId String?
   parent   Showcase?  @relation("ShowcaseParent", fields: [parentId], references: [id])
   children Showcase[] @relation("ShowcaseParent")
   products Product[]
 }
 
 model Product {
-  id          Int       @id @default(autoincrement())
+  id          String       @id @default(uuid())
   shop        Shop      @relation(fields: [shopId], references: [id])
-  shopId      Int
+  shopId      String
   name        String
   description String
   price       Decimal   @db.Decimal(12, 2)
   stock       Int
   category    Category
-  showcaseId  Int?
+  showcaseId  String?
   showcase    Showcase? @relation(fields: [showcaseId], references: [id])
   createdAt   DateTime  @default(now())
 
@@ -76,19 +76,19 @@ model Product {
 }
 
 model ProductImage {
-  id        Int     @id @default(autoincrement())
+  id        String     @id @default(uuid())
   product   Product @relation(fields: [productId], references: [id])
-  productId Int
+  productId String
   imageUrl  String
   isPrimary Boolean @default(false)
 }
 
 model Order {
-  id          Int         @id @default(autoincrement())
+  id          String         @id @default(uuid())
   buyer       User        @relation(fields: [buyerId], references: [id])
-  buyerId     Int
+  buyerId     String
   address     Address     @relation(fields: [addressId], references: [id])
-  addressId   Int
+  addressId   String
   totalAmount Decimal     @db.Decimal(12, 2)
   status      OrderStatus @default(PENDING)
   createdAt   DateTime    @default(now())
@@ -99,28 +99,28 @@ model Order {
 }
 
 model OrderItem {
-  id        Int     @id @default(autoincrement())
+  id        String     @id @default(uuid())
   order     Order   @relation(fields: [orderId], references: [id])
-  orderId   Int
+  orderId   String
   product   Product @relation(fields: [productId], references: [id])
-  productId Int
+  productId String
   quantity  Int
   price     Decimal @db.Decimal(12, 2)
 }
 
 model Payment {
-  id            Int           @id @default(autoincrement())
+  id            String           @id @default(uuid())
   order         Order         @relation(fields: [orderId], references: [id])
-  orderId       Int           @unique
+  orderId       String           @unique
   method        String
   paymentStatus PaymentStatus @default(WAITING)
   paidAt        DateTime?
 }
 
 model Shipping {
-  id             Int            @id @default(autoincrement())
+  id             String            @id @default(uuid())
   order          Order          @relation(fields: [orderId], references: [id])
-  orderId        Int
+  orderId        String
   courierName    String
   trackingNumber String
   status         ShippingStatus @default(AWAITING_PICKUP)
@@ -131,20 +131,20 @@ model Shipping {
 }
 
 model ShippingStatusLog {
-  id         Int            @id @default(autoincrement())
+  id         String            @id @default(uuid())
   shipping   Shipping       @relation(fields: [shippingId], references: [id])
-  shippingId Int
+  shippingId String
   status     ShippingStatus
   note       String?
   timestamp  DateTime       @default(now())
 }
 
 model Review {
-  id        Int      @id @default(autoincrement())
+  id        String      @id @default(uuid())
   user      User     @relation(fields: [userId], references: [id])
-  userId    Int
+  userId    String
   product   Product  @relation(fields: [productId], references: [id])
-  productId Int
+  productId String
   rating    Int
   comment   String?
   createdAt DateTime @default(now())

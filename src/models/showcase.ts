@@ -1,5 +1,5 @@
 // Get all showcases for a shop (even if empty)
-export async function getAllShowcasesByShopId(shopId: number) {
+export async function getAllShowcasesByShopId(shopId: string) {
   // Find all showcases that are referenced by products in this shop, or that exist (if you want to show all created showcases for this shop)
   // Since Showcase does not have a shopId, we assume all showcases created by this shop's AddShowcaseInlineForm belong to this shop
   // So, fetch all showcases that have at least one product in this shop, OR that have no products at all (newly created)
@@ -22,9 +22,9 @@ export async function createShowcaseBasedShopId({
   name,
   parentId,
 }: {
-  shopId: number;
+  shopId: string;
   name: string;
-  parentId?: number;
+  parentId?: string;
 }) {
   // Attach the new showcase to the shop by creating a productless showcase
   // (Showcase is not directly related to shop, but to products in shop)
@@ -41,14 +41,14 @@ import { prisma } from '@/lib/prisma';
 
 // Define type for showcase with product count
 type ShowcaseWithCount = {
-  id: number;
+  id: string;
   name: string;
   _count: {
     products: number;
   };
 };
 
-export async function getShowcasesByShopId(shopId: number) {
+export async function getShowcasesByShopId(shopId: string) {
   // Get distinct showcases that have products belonging to this shop
   const showcases = await prisma.showcase.findMany({
     where: {
@@ -74,13 +74,13 @@ export async function getShowcasesByShopId(shopId: number) {
 }
 
 // delete showcase
-export async function deleteShowCaseById(showCaseId: number) {
+export async function deleteShowCaseById(showCaseId: string) {
   return prisma.showcase.delete({
     where: { id: showCaseId },
   });
 }
 
-export async function updateShowCaseById(data: { id: number; name: string }) {
+export async function updateShowCaseById(data: { id: string; name: string }) {
   return prisma.showcase.update({
     where: { id: data.id },
     data: { name: data.name },
