@@ -1,4 +1,4 @@
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { getShopByUserId } from '@/models/shop';
 import { getProductsByShopId } from '@/models/product';
 import {
@@ -21,9 +21,8 @@ import {
 type Showcase = { id: string; name: string; productCount?: number };
 
 export default async function SellerDashboard() {
-  // Get userId from request headers (set by middleware)
-  const headersList = await headers();
-  const userIdHeader = headersList.get('x-user-id');
+  const cookieList = await cookies();
+  const userIdHeader = cookieList.get('ShopWaveUserId')?.value;
   const userId = userIdHeader;
   if (!userId) {
     // Not authenticated, redirect to login
