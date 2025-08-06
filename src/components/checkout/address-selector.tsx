@@ -71,7 +71,8 @@ export function AddressSelector({ addresses = [], control, useNewAddress, setUse
                   <FormLabel>Select Address</FormLabel>
                   <Select 
                     onValueChange={(value) => field.onChange(parseInt(value))} 
-                    defaultValue={field.value?.toString()}
+                    value={field.value?.toString() || ''}
+                    key={`address-select-${addresses.length}-${field.value}`} // Force re-render when addresses change or value changes
                   >
                     <FormControl>
                       <SelectTrigger>

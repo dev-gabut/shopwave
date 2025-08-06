@@ -76,7 +76,14 @@ export default function CheckoutPage() {
     }
     if (addresses.length > 0) {
       const defaultAddress = addresses.find(addr => addr.isDefault) || addresses[0];
-      form.setValue('addressId', defaultAddress.id);
+      const currentAddressId = form.getValues('addressId');
+      
+      // If no address is selected, or if there's a new default address, select it
+      if (!currentAddressId || 
+          (defaultAddress.isDefault && currentAddressId !== defaultAddress.id) ||
+          !addresses.find(addr => addr.id === currentAddressId)) {
+        form.setValue('addressId', defaultAddress.id);
+      }
     }
   }, [addresses, user, form]);
 
@@ -109,16 +116,21 @@ export default function CheckoutPage() {
       }
 
       const addressData = await createAddressResponse.json();
+      
+      // Add the address to the list first
       addAddress(addressData);
+      
+      // Then update the form values after a short delay to ensure addresses list is updated
+      setTimeout(() => {
+        setUseNewAddress(false);
+        form.setValue('useNewAddress', false);
+        form.setValue('addressId', addressData.id);
+      }, 100);
       
       toast({
         title: "Address Created!",
         description: "New address has been added to your account.",
       });
-
-      // Switch back to existing address mode and select the new address
-      setUseNewAddress(false);
-      form.setValue('addressId', addressData.id);
       
       // Reset new address form
       form.setValue('newAddress', {
