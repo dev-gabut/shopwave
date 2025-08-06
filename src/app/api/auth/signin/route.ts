@@ -31,6 +31,38 @@ export async function POST(req: NextRequest) {
       maxAge: 86400, // 1 day
     });
 
+    response.cookies.set({
+      name: 'ShopWaveUserId',
+      value: user.id,
+      httpOnly: true,
+      path: '/',
+      maxAge: 86400, // 1 day
+    });
+
+    response.cookies.set({
+      name: 'ShopWaveUserName',
+      value: user.name,
+      httpOnly: true,
+      path: '/',
+      maxAge: 86400, // 1 day
+    });
+
+    response.cookies.set({
+      name: 'ShopWaveUserEmail',
+      value: user.email,
+      httpOnly: true,
+      path: '/',
+      maxAge: 86400, // 1 day
+    });
+
+    response.cookies.set({
+      name: 'ShopWaveUserRole',
+      value: user.role,
+      httpOnly: true,
+      path: '/',
+      maxAge: 86400, // 1 day
+    });
+
     return response;
   } catch (error: unknown) {
     const errorMessage =
