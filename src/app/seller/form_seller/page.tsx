@@ -51,11 +51,6 @@ export default function SellerPage() {
     }
   }, [user, loading, router]);
 
-  const defaultAddress =
-    user && user.addresses
-      ? user.addresses.find((a: { isDefault: boolean }) => a.isDefault)
-      : undefined;
-
   const onSubmit = async (data: ShopFormData) => {
     setIsSubmitting(true);
     try {
@@ -194,16 +189,6 @@ export default function SellerPage() {
                   </FormItem>
                 )}
               />
-
-              {/* Shop Address */}
-              <div>
-                <FormLabel>Shop Address</FormLabel>
-                <div className="p-2 border rounded bg-muted">
-                  {defaultAddress
-                    ? `${defaultAddress.label}, ${defaultAddress.address}, ${defaultAddress.city}, ${defaultAddress.province}, ${defaultAddress.postalCode}`
-                    : 'No default address found.'}
-                </div>
-              </div>
 
               {/* Submit */}
               <Button type="submit" className="w-full" disabled={isSubmitting}>
