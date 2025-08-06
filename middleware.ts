@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
 		return NextResponse.redirect(new URL('/signin', request.url));
 	}
 	if (token && request.nextUrl.pathname === '/signin') {
-		return NextResponse.redirect(new URL('/', request.url));
+		return NextResponse.redirect(new URL('/'));
 	}
 	if (token) {
 		const payload = await verifyToken(token);
