@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './use-auth';
 
 interface Address {
-  id: number;
+  id: string;
   label: string;
   address: string;
   city: string;
@@ -21,7 +21,7 @@ export function useUserAddresses() {
   // Function to fetch addresses from database
   const fetchAddresses = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       setLoading(true);
       const response = await fetch('/api/user/addresses');
@@ -47,8 +47,11 @@ export function useUserAddresses() {
   const addAddress = (newAddress: Address) => {
     const updatedAddresses = [...addresses, newAddress];
     setAddresses(updatedAddresses);
-    console.log('Added new address, total addresses now:', updatedAddresses.length);
-    
+    console.log(
+      'Added new address, total addresses now:',
+      updatedAddresses.length
+    );
+
     // Optionally refresh from database to get the most up-to-date list
     setTimeout(() => fetchAddresses(), 500);
   };

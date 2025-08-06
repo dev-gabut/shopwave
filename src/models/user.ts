@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET!;
 
 // Define the Address type explicitly
 export interface User {
-  id: number;
+  id: string;
   name?: string;
   email: string;
   role: 'BUYER' | 'SELLER' | 'ADMIN';
@@ -16,7 +16,7 @@ export interface User {
 }
 
 type Address = {
-  id: number;
+  id: string;
   label: string;
   address: string;
   city: string;
@@ -30,7 +30,7 @@ export async function getCurrentUser() {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get('ShopWaveToken')?.value;
-    
+
     if (!token) {
       return null;
     }
@@ -39,13 +39,13 @@ export async function getCurrentUser() {
     const userId = decoded.sub;
 
     const user = await prisma.user.findUnique({
-      where: { id: parseInt(userId) },
-      include: { 
+      where: { id: userId },
+      include: {
         addresses: {
           orderBy: {
-            isDefault: 'desc'
-          }
-        }
+            isDefault: 'desc',
+          },
+        },
       },
     });
 
@@ -76,13 +76,13 @@ export async function getCurrentUser() {
 }
 
 // Get addresses by user ID
-export async function getAddressesByUserId(userId: number) {
+export async function getAddressesByUserId(userId: string) {
   try {
     const addresses = await prisma.address.findMany({
       where: { userId },
       orderBy: {
-        isDefault: 'desc'
-      }
+        isDefault: 'desc',
+      },
     });
 
     return addresses.map((address) => ({
@@ -101,21 +101,24 @@ export async function getAddressesByUserId(userId: number) {
 }
 
 // Create new address for user
-export async function createUserAddress(userId: number, addressData: Omit<Address, 'id'>) {
+export async function createUserAddress(
+  userId: string,
+  addressData: Omit<Address, 'id'>
+) {
   try {
     // If this is set as default, make sure no other address is default
     if (addressData.isDefault) {
       await prisma.address.updateMany({
         where: { userId, isDefault: true },
-        data: { isDefault: false }
+        data: { isDefault: false },
       });
     }
 
     const newAddress = await prisma.address.create({
       data: {
         userId,
-        ...addressData
-      }
+        ...addressData,
+      },
     });
 
     return {

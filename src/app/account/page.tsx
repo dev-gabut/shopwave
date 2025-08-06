@@ -48,32 +48,28 @@ export default function AccountPage() {
     let uploadedImageUrl = user?.imageUrl;
 
     if (selectedImage) {
-      const fileExt = selectedImage.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const formData = new FormData();
+      formData.append('file', selectedImage);
+      formData.append('userId', user.id);
 
-      const { error: uploadError } = await supabase.storage
-        .from('bucketimage')
-        .upload(filePath, selectedImage, {
-          contentType: selectedImage.type,
-          upsert: true,
-        });
+      const res = await fetch('/api/account/upload', {
+        method: 'POST',
+        body: formData,
+      });
 
-      if (uploadError) {
+      const result = await res.json();
+
+      if (!res.ok) {
         toast({
           title: 'Upload failed',
-          description: uploadError.message,
+          description: result.error || 'Unknown error',
           variant: 'destructive',
         });
         setIsSaving(false);
         return;
       }
 
-      const { data } = supabase.storage
-        .from('bucketimage')
-        .getPublicUrl(filePath);
-
-      uploadedImageUrl = data.publicUrl;
+      uploadedImageUrl = result.publicUrl;
     }
 
     console.log('Updated image URL:', uploadedImageUrl);
