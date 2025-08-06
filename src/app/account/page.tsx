@@ -31,17 +31,58 @@ export default function AccountPage() {
     }
   }, [user, loading, router]);
 
-  const handleSaveChanges = (e: React.FormEvent) => {
+  const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    // In a real app, you would have logic to update user details.
-    setTimeout(() => {
+
+    if (!user) {
       toast({
-        title: 'Changes Saved!',
-        description: 'Your account details have been updated.',
+        title: 'User not found',
+        description: 'Please sign in again.',
+        variant: 'destructive',
       });
       setIsSaving(false);
-    }, 1000);
+      return;
+    }
+
+    let uploadedImageUrl = user?.imageUrl;
+
+    if (selectedImage) {
+      const fileExt = selectedImage.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('bucketimage')
+        .upload(filePath, selectedImage, {
+          contentType: selectedImage.type,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        toast({
+          title: 'Upload failed',
+          description: uploadError.message,
+          variant: 'destructive',
+        });
+        setIsSaving(false);
+        return;
+      }
+
+      const { data } = supabase.storage
+        .from('bucketimage')
+        .getPublicUrl(filePath);
+
+      uploadedImageUrl = data.publicUrl;
+    }
+
+    console.log('Updated image URL:', uploadedImageUrl);
+
+    toast({
+      title: 'Changes Saved!',
+      description: 'Your account details have been updated.',
+    });
+    setIsSaving(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
