@@ -3,7 +3,6 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getProducts } from '@/models/product';
 import type { Product } from '@/lib/types';
 import { ProductCard } from '@/components/product-card';
 import { ProductSearch } from '@/components/product-search';
@@ -21,7 +20,9 @@ function SearchResults() {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
-      const allProducts = await getProducts(searchTerm);
+      const response = await fetch(`/api/product/search/${searchTerm || '*'}`);
+      const allProducts = await response.json();
+      console.log('Fetched products:', allProducts);
       setProducts(allProducts);
       setLoading(false);
     };
