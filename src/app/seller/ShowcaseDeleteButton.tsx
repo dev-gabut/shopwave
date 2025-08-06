@@ -7,7 +7,7 @@ import { Showcase } from '@prisma/client';
 import { Pencil, Trash2 } from 'lucide-react';
 import { EditShowcaseModal } from '@/components/edit-showcase-modal';
 
-export function ShowcaseDeleteButton({ showcaseId }: { showcaseId: number }) {
+export function ShowcaseDeleteButton({ showcaseId }: { showcaseId: string }) {
   const router = useRouter();
 
   const handleDelete = async () => {

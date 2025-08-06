@@ -24,8 +24,8 @@ export default async function SellerDashboard() {
   // Get userId from request headers (set by middleware)
   const headersList = await headers();
   const userIdHeader = headersList.get('x-user-id');
-  const userId = userIdHeader ? Number(userIdHeader) : null;
-  if (!userId || isNaN(userId)) {
+  const userId = userIdHeader;
+  if (!userId) {
     // Not authenticated, redirect to login
     redirect('/signin');
   }
@@ -124,17 +124,17 @@ export default async function SellerDashboard() {
           <div className="col-span-3">
             <div className="space-y-4">
               {/* Showcases Section */}
-              <ShowcaseSection 
-                showcases={showcases} 
-                shopId={shop.id} 
-                productsLength={products.length} 
+              <ShowcaseSection
+                showcases={showcases}
+                shopId={shop.id}
+                productsLength={products.length}
               />
-              
+
               {/* Categories Section */}
               <CategoriesSection products={products} />
             </div>
           </div>
-          
+
           {/* Products Area */}
           <div className="col-span-9">
             <ProductsArea products={products} />

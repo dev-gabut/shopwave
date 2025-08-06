@@ -1,34 +1,34 @@
-
 'use server';
 import { createShowcaseBasedShopId } from '@/models/showcase';
 import { revalidatePath } from 'next/cache';
 import { Plus } from 'lucide-react';
 
-
 export async function addShowcaseAction(formData: FormData) {
-  const shopId = Number(formData.get('shopId'));
+  const shopId = formData.get('shopId')?.toString();
   const name = formData.get('name')?.toString() || '';
   if (!name.trim()) {
     // Optionally: set error in cookies or use redirect with error param
     return;
   }
   try {
-    await createShowcaseBasedShopId({ shopId, name });
-    revalidatePath('/seller');
+    if (shopId) {
+      await createShowcaseBasedShopId({ shopId, name });
+      revalidatePath('/seller');
+    }
   } catch (e) {
     // Optionally: set error in cookies or use redirect with error param
     return;
   }
 }
 
-export default async function AddShowcaseInlineForm({ shopId }: { shopId: number }) {
+export default async function AddShowcaseInlineForm({
+  shopId,
+}: {
+  shopId: string;
+}) {
   return (
     <form action={addShowcaseAction} className="flex items-center gap-2">
-      <input
-        type="hidden"
-        name="shopId"
-        value={shopId}
-      />
+      <input type="hidden" name="shopId" value={shopId} />
       <input
         type="text"
         name="name"

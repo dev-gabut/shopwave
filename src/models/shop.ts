@@ -1,7 +1,12 @@
 import { prisma } from '@/lib/prisma';
 
-export async function createShop({ userId, shopName, description, imageUrl }: {
-  userId: number;
+export async function createShop({
+  userId,
+  shopName,
+  description,
+  imageUrl,
+}: {
+  userId: string;
   shopName: string;
   description: string;
   imageUrl: string;
@@ -21,19 +26,16 @@ export async function createShop({ userId, shopName, description, imageUrl }: {
   });
   return shop;
 }
- 
-export async function getShopByUserId(userId: number) {
+
+export async function getShopByUserId(userId: string) {
   return prisma.shop.findUnique({
     where: { userId },
   });
 }
 
-
 // Get shop by id
-export async function getShopById(shopId: number) {
+export async function getShopById(shopId: string) {
   return prisma.shop.findUnique({
     where: { id: shopId },
   });
 }
-
-
