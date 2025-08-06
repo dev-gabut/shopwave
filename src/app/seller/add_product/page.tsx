@@ -6,7 +6,6 @@ import { ArrowLeft } from 'lucide-react';
 
 import ImageUploadWrapper from '@/components/image-upload-wrapper';
 
-// Removed server action and its imports
 // Showcase type
 type Showcase = {
   id: number;

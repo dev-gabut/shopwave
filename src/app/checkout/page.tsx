@@ -1,86 +1,232 @@
-
 'use client';
 
 import { useCart } from '@/hooks/use-cart';
-import Image from 'next/image';
+import { useAuth } from '@/hooks/use-auth';
+import { useUserAddresses } from '@/hooks/use-user-addresses';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatPrice } from '@/lib/client-utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
-import { Minus, Plus, Trash2, CreditCard } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import { OrderSummary } from '@/components/checkout/order-summary';
+import { AddressSelector } from '@/components/checkout/address-selector';
+import { NewAddressForm } from '@/components/checkout/new-address-form';
 
 const checkoutSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
-  firstName: z.string().min(1, { message: 'First name is required.' }),
-  lastName: z.string().min(1, { message: 'Last name is required.' }),
-  address: z.string().min(1, { message: 'Address is required.' }),
-  city: z.string().min(1, { message: 'City is required.' }),
-  postalCode: z.string().min(5, { message: 'Postal code is required.' }),
-  country: z.string().min(1, { message: 'Country is required.' }),
-  cardName: z.string().min(1, { message: 'Name on card is required.' }),
-  cardNumber: z.string().refine((val) => /^\d{16}$/.test(val), { message: 'Invalid card number.' }),
-  cardExpiry: z.string().refine((val) => /^(0[1-9]|1[0-2])\/\d{2}$/.test(val), { message: 'Invalid format (MM/YY).' }),
-  cardCvc: z.string().refine((val) => /^\d{3,4}$/.test(val), { message: 'Invalid CVC.' }),
+  addressId: z.number().optional(),
+  newAddress: z.object({
+    label: z.string().min(1, { message: 'Address label is required.' }),
+    address: z.string().min(1, { message: 'Address is required.' }),
+    city: z.string().min(1, { message: 'City is required.' }),
+    province: z.string().min(1, { message: 'Province is required.' }),
+    postalCode: z.string().min(5, { message: 'Postal code is required.' }),
+    isDefault: z.boolean().default(false),
+  }).optional(),
+  useNewAddress: z.boolean().default(false),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutPage() {
-  const { cartItems, cartTotal, updateQuantity, removeFromCart, clearCart } = useCart();
   const { user, loading } = useAuth();
+  const { addresses = [], addAddress, loading: addressLoading } = useUserAddresses();
+  const { cartItems = [], cartTotal = 0, clearCart } = useCart();
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [useNewAddress, setUseNewAddress] = useState(false);
+  const [isCreatingAddress, setIsCreatingAddress] = useState(false);
 
+  const form = useForm<CheckoutFormValues>({
+    resolver: zodResolver(checkoutSchema),
+    defaultValues: { 
+      email: user?.email || '',
+      addressId: addresses.find(addr => addr.isDefault)?.id || addresses[0]?.id || undefined,
+      newAddress: {
+        label: '',
+        address: '',
+        city: '',
+        province: '',
+        postalCode: '',
+        isDefault: addresses.length === 0 || false,
+      },
+      useNewAddress: addresses.length === 0 || false,
+    },
+  });
+
+  // Redirect to sign in if not authenticated
   useEffect(() => {
     if (!loading && !user) {
       router.push('/signin?redirect=/checkout');
     }
   }, [user, loading, router]);
 
-
-  const form = useForm<CheckoutFormValues>({
-    resolver: zodResolver(checkoutSchema),
-    defaultValues: { email: user?.email || '', firstName: '', lastName: '', address: '', city: '', postalCode: '', country: '', cardName: '', cardNumber: '', cardExpiry: '', cardCvc: '' },
-  });
-
   useEffect(() => {
+    setUseNewAddress(addresses.length === 0);
     if (user?.email) {
       form.setValue('email', user.email);
     }
-  }, [user, form]);
+    if (addresses.length > 0) {
+      const defaultAddress = addresses.find(addr => addr.isDefault) || addresses[0];
+      const currentAddressId = form.getValues('addressId');
+      
+      // If no address is selected, or if there's a new default address, select it
+      if (!currentAddressId || 
+          (defaultAddress.isDefault && currentAddressId !== defaultAddress.id) ||
+          !addresses.find(addr => addr.id === currentAddressId)) {
+        form.setValue('addressId', defaultAddress.id);
+      }
+    }
+  }, [addresses, user, form]);
 
-  const onSubmit = (data: CheckoutFormValues) => {
-    setIsSubmitting(true);
-    console.log('Order submitted:', data);
-
-    setTimeout(() => {
+  // Function to create new address
+  const handleCreateAddress = async () => {
+    const newAddressData = form.getValues('newAddress');
+    
+    if (!newAddressData?.label || !newAddressData?.address || !newAddressData?.city || 
+        !newAddressData?.province || !newAddressData?.postalCode) {
       toast({
-        title: "Order Placed!",
-        description: "Thank you for your purchase. Your order is on its way.",
+        title: "Error",
+        description: "Please fill in all address fields.",
+        variant: "destructive"
       });
-      clearCart();
-      router.push('/');
-    }, 1500);
+      return;
+    }
+
+    setIsCreatingAddress(true);
+    
+    try {
+      const createAddressResponse = await fetch('/api/user/addresses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newAddressData),
+      });
+
+      if (!createAddressResponse.ok) {
+        const error = await createAddressResponse.json();
+        throw new Error(error.error || 'Failed to create address');
+      }
+
+      const addressData = await createAddressResponse.json();
+      
+      // Add the address to the list first
+      addAddress(addressData);
+      
+      // Then update the form values after a short delay to ensure addresses list is updated
+      setTimeout(() => {
+        setUseNewAddress(false);
+        form.setValue('useNewAddress', false);
+        form.setValue('addressId', addressData.id);
+      }, 100);
+      
+      toast({
+        title: "Address Created!",
+        description: "New address has been added to your account.",
+      });
+      
+      // Reset new address form
+      form.setValue('newAddress', {
+        label: '',
+        address: '',
+        city: '',
+        province: '',
+        postalCode: '',
+        isDefault: false,
+      });
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create address.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingAddress(false);
+    }
   };
-  
-  if (loading || !user) {
+
+  // Show loading state
+  if (loading || addressLoading) {
     return (
-        <div className="flex justify-center items-center h-64">
-            <p>Loading...</p>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <p className="text-lg">Loading checkout...</p>
+          <p className="text-sm text-muted-foreground">Please wait</p>
         </div>
-    )
+      </div>
+    );
   }
+
+  // Return while redirecting
+  if (!user) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-center">
+          <p className="text-lg">Redirecting...</p>
+          <p className="text-sm text-muted-foreground">Please wait</p>
+        </div>
+      </div>
+    );
+  }
+
+  const onSubmit = async (data: CheckoutFormValues) => {
+    setIsSubmitting(true);
+    
+    try {
+      // Only use existing addresses for order creation
+      if (useNewAddress) {
+        toast({
+          title: "Error",
+          description: "Please create the address first before placing the order.",
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+
+      const selectedAddress = addresses.find(addr => addr.id === data.addressId);
+      if (!selectedAddress) {
+        throw new Error('Please select a valid address');
+      }
+
+      const orderData = {
+        items: cartItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        address: selectedAddress,
+        totalAmount: cartTotal
+      };
+      
+      // TODO: Send to API to create order
+      setTimeout(() => {
+        toast({
+          title: "Order Created!",
+          description: "Redirecting to payment...",
+        });
+        clearCart();
+        router.push('/');
+      }, 1500);
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create order.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (cartItems.length === 0 && !isSubmitting) {
     return (
@@ -98,72 +244,73 @@ export default function CheckoutPage() {
     <div>
       <h1 className="text-4xl font-headline font-bold mb-8 text-center">Checkout</h1>
       <div className="grid lg:grid-cols-2 gap-12">
-        <Card>
-          <CardHeader>
-            <CardTitle>Order Summary</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {cartItems.map((item) => (
-              <div key={item.id} className="flex items-start gap-4">
-                <Image src={item.image} alt={item.name} width={80} height={80} className="rounded-md object-cover" data-ai-hint="product image" />
-                <div className="flex-grow">
-                  <h3 className="font-semibold">{item.name}</h3>
-                  <p className="text-sm text-muted-foreground">{formatPrice(item.price)}</p>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.id, item.quantity - 1)}><Minus className="h-4 w-4" /></Button>
-                    <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
-                    <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.id, item.quantity + 1)}><Plus className="h-4 w-4" /></Button>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-semibold">{formatPrice(item.price * item.quantity)}</p>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => removeFromCart(item.id)}><Trash2 className="h-4 w-4" /></Button>
-                </div>
-              </div>
-            ))}
-            <Separator />
-            <div className="flex justify-between font-bold text-lg">
-              <span>Total</span>
-              <span>{formatPrice(cartTotal)}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <OrderSummary />
 
         <Card>
           <CardHeader>
-            <CardTitle>Shipping & Payment</CardTitle>
+            <CardTitle>Delivery Information</CardTitle>
           </CardHeader>
           <CardContent>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <section className="space-y-4">
                   <h3 className="font-semibold text-lg">Contact Information</h3>
-                  <FormField control={form.control} name="email" render={({ field }) => ( <FormItem> <FormLabel>Email</FormLabel> <FormControl><Input placeholder="you@example.com" {...field} disabled /></FormControl> <FormMessage /> </FormItem> )} />
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input value={user?.name || 'User'} disabled />
+                    </FormControl>
+                  </FormItem>
+                  <FormField 
+                    control={form.control} 
+                    name="email" 
+                    render={({ field }) => ( 
+                      <FormItem> 
+                        <FormLabel>Email</FormLabel> 
+                        <FormControl>
+                          <Input placeholder="you@example.com" {...field} disabled />
+                        </FormControl> 
+                        <FormMessage /> 
+                      </FormItem> 
+                    )} 
+                  />
                 </section>
+                
                 <section className="space-y-4">
-                  <h3 className="font-semibold text-lg">Shipping Address</h3>
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <FormField control={form.control} name="firstName" render={({ field }) => ( <FormItem> <FormLabel>First Name</FormLabel> <FormControl><Input placeholder="John" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                    <FormField control={form.control} name="lastName" render={({ field }) => ( <FormItem> <FormLabel>Last Name</FormLabel> <FormControl><Input placeholder="Doe" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                  </div>
-                  <FormField control={form.control} name="address" render={({ field }) => ( <FormItem> <FormLabel>Address</FormLabel> <FormControl><Input placeholder="123 Main St" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                  <div className="grid sm:grid-cols-3 gap-4">
-                    <FormField control={form.control} name="city" render={({ field }) => ( <FormItem> <FormLabel>City</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                    <FormField control={form.control} name="postalCode" render={({ field }) => ( <FormItem> <FormLabel>Postal Code</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                    <FormField control={form.control} name="country" render={({ field }) => ( <FormItem> <FormLabel>Country</FormLabel> <FormControl><Input placeholder="USA" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                  </div>
+                  <h3 className="font-semibold text-lg">Delivery Address</h3>
+                  <AddressSelector 
+                    addresses={addresses}
+                    control={form.control}
+                    useNewAddress={useNewAddress}
+                    setUseNewAddress={setUseNewAddress}
+                    setValue={form.setValue}
+                  />
+                  {useNewAddress && (
+                    <>
+                      <NewAddressForm 
+                        control={form.control}
+                        hasExistingAddresses={addresses && addresses.length > 0}
+                      />
+                      <Button 
+                        type="button" 
+                        onClick={handleCreateAddress}
+                        disabled={isCreatingAddress}
+                        className="w-auto px-6 mx-auto block"
+                        size="sm"
+                      >
+                        {isCreatingAddress ? 'Creating Address...' : 'Create Address'}
+                      </Button>
+                    </>
+                  )}
                 </section>
-                 <section className="space-y-4">
-                    <h3 className="font-semibold text-lg">Payment Details</h3>
-                     <FormField control={form.control} name="cardName" render={({ field }) => ( <FormItem> <FormLabel>Name on Card</FormLabel> <FormControl><Input placeholder="John M Doe" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                     <FormField control={form.control} name="cardNumber" render={({ field }) => ( <FormItem> <FormLabel>Card Number</FormLabel> <FormControl><div className="relative"><CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" /><Input className="pl-10" placeholder="0000 0000 0000 0000" {...field} /></div></FormControl> <FormMessage /> </FormItem> )} />
-                    <div className="grid sm:grid-cols-2 gap-4">
-                        <FormField control={form.control} name="cardExpiry" render={({ field }) => ( <FormItem> <FormLabel>Expiration (MM/YY)</FormLabel> <FormControl><Input placeholder="MM/YY" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                        <FormField control={form.control} name="cardCvc" render={({ field }) => ( <FormItem> <FormLabel>CVC</FormLabel> <FormControl><Input placeholder="123" {...field} /></FormControl> <FormMessage /> </FormItem> )} />
-                    </div>
-                </section>
-                <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-                  {isSubmitting ? 'Placing Order...' : `Pay ${formatPrice(cartTotal)}`}
+
+                <Button 
+                  type="submit" 
+                  className="w-auto px-8 mx-auto block" 
+                  size="sm" 
+                  disabled={isSubmitting || useNewAddress}
+                >
+                  {isSubmitting ? 'Processing...' : useNewAddress ? 'Create Address First' : `Complete Order - ${formatPrice(cartTotal)}`}
                 </Button>
               </form>
             </Form>

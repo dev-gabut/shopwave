@@ -12,10 +12,12 @@ export async function POST(req: NextRequest) {
       {
         user: {
           id: user.id,
+          name: user.name,
           email: user.email,
           role: user.role,
           addresses: user.addresses,
         },
+        addresses: user.addresses, // Include addresses separately for localStorage
       },
       { status: 200 }
     );
