@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 
 // Showcase type must be passed as prop from server
 export type Showcase = {
-  id: number;
+  id: string;
   name: string;
   productCount: number;
 };
@@ -14,7 +14,7 @@ export type Showcase = {
 export type ImageUploadWrapperProps = {
   showcases: Showcase[];
   categories: { value: string; label: string }[];
-  shopId: number;
+  shopId: string;
 };
 
 const ProductImageUpload = dynamic(() => import("@/components/product-image-upload"), { ssr: false });
