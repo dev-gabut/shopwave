@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import type { ProductImage } from "@/components/product-image-upload";
 import dynamic from "next/dynamic";
 import { useRouter } from 'next/navigation';
@@ -11,15 +11,25 @@ export type Showcase = {
   productCount: number;
 };
 
-export type ImageUploadWrapperProps = {
+export type AddOrEditProductFormProps = {
   showcases: Showcase[];
   categories: { value: string; label: string }[];
   shopId: string;
+  defaultValues?: {
+    id: string;
+    shopId: string;
+    name: string;
+    description: string;
+    price: number;
+    stock: number;
+    category: string;
+    showcaseId: string;
+  };
 };
 
 const ProductImageUpload = dynamic(() => import("@/components/product-image-upload"), { ssr: false });
 
-export default function ImageUploadWrapper({ showcases, categories, shopId }: ImageUploadWrapperProps) {
+export default function AddOrEditProductForm({ showcases, categories, shopId, defaultValues }: AddOrEditProductFormProps) {
   const [images, setImages] = useState<ProductImage[]>([]);
   const [imageError, setImageError] = useState<string | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
@@ -37,6 +47,12 @@ export default function ImageUploadWrapper({ showcases, categories, shopId }: Im
       return updated;
     });
   };
+
+  useEffect(() => {
+    if (defaultValues) {
+      
+    }
+  }, [defaultValues]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -91,6 +107,7 @@ export default function ImageUploadWrapper({ showcases, categories, shopId }: Im
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm border-gray-300"
               placeholder="Enter product name"
               required
+              value={defaultValues?.name || ''}
             />
           </div>
           {/* Product Description */}
@@ -105,6 +122,7 @@ export default function ImageUploadWrapper({ showcases, categories, shopId }: Im
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm border-gray-300"
               placeholder="Describe your product..."
               required
+              value={defaultValues?.description || ''}
             />
           </div>
           {/* Price */}
@@ -121,6 +139,7 @@ export default function ImageUploadWrapper({ showcases, categories, shopId }: Im
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm border-gray-300"
               placeholder="0.00"
               required
+              value={defaultValues?.price || ''}
             />
           </div>
           {/* Stock */}
@@ -136,6 +155,7 @@ export default function ImageUploadWrapper({ showcases, categories, shopId }: Im
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm border-gray-300"
               placeholder="0"
               required
+              value={defaultValues?.stock || ''}
             />
           </div>
           {/* Category */}
@@ -148,6 +168,7 @@ export default function ImageUploadWrapper({ showcases, categories, shopId }: Im
               name="category"
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm border-gray-300"
               required
+              value={defaultValues?.category || ''}
             >
               <option value="">Select category</option>
               {categories.map(category => (
@@ -165,6 +186,7 @@ export default function ImageUploadWrapper({ showcases, categories, shopId }: Im
             <select
               id="showcaseId"
               name="showcaseId"
+              value={defaultValues?.showcaseId || ''}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             >
               <option value="">No showcase</option>

@@ -1,4 +1,3 @@
-import { headers } from 'next/headers';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getAllShowcasesByShopId } from '@/models/showcase';
@@ -28,8 +27,6 @@ const CATEGORIES = [
 ];
 
 export default async function AddProductPage() {
-  // Get userId from request headers (set by middleware)
-  const headersList = await headers();
   const cookieList = await cookies();
   const userIdHeader = cookieList.get('ShopWaveUserId')?.value;
   const userId = userIdHeader;

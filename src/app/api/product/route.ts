@@ -1,11 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { createProduct } from '@/models/product';
 import { prisma } from '@/lib/prisma';
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { supabase } from '@/lib/supabase';
 
 // Define categories directly since Prisma enum isn't available
 const VALID_CATEGORIES = [

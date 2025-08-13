@@ -9,6 +9,7 @@ export type UpdateProductInput = {
   showcaseId?: string | null;
 };
 
+
 export async function updateProduct({ id, ...data }: UpdateProductInput) {
   // Only update provided fields
   return prisma.product.update({

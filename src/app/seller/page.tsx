@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { getShopByUserId } from '@/models/shop';
-import { getProductsByShopId } from '@/models/product';
+import { productServiceInstance } from '@/models/Product/product-service';
 import {
   getShowcasesByShopId,
   getAllShowcasesByShopId,
@@ -48,7 +48,7 @@ export default async function SellerDashboard() {
       </div>
     );
   }
-  const productsRaw = await getProductsByShopId(shop.id);
+  const productsRaw = await productServiceInstance.filterByFields({ shopId: shop.id });
   // Fetch all showcases for the shop, not just those with products
   const showcases = await getAllShowcasesByShopId(shop.id);
   // Map products to match Product interface (id: string, showcase: string | undefined)
