@@ -23,30 +23,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-	// Restore user from cookie/session on mount
-	useEffect(() => {
-		async function fetchUser() {
-			setLoading(true);
-			try {
-				const headers = (await getHeaders()) as any;
-				if (headers.find(([key, _]: [string, string]) => key === 'x-user-id')?.[1]) {
-					setUser({
-						id: Number(headers.find(([key, _]: [string, string]) => key === 'x-user-id')?.[1] || ''),
-						name: headers.find(([key, _]: [string, string]) => key === 'x-user-name')?.[1] || '',
-						imageUrl: headers.find(([key, _]: [string, string]) => key === 'x-user-image')?.[1] || '',
-						email: headers.find(([key, _]: [string, string]) => key === 'x-user-email')?.[1] || '',
-						role: headers.find(([key, _]: [string, string]) => key === 'x-user-role')?.[1] as 'BUYER' | 'SELLER' | 'ADMIN',
-						addresses: [],
-					});
-				}
-			} catch {
-				setUser(null);
-			} finally {
-				setLoading(false);
-			}
-		}
-		fetchUser();
-	}, []);
+  // Restore user from cookie/session on mount
+  useEffect(() => {
+    async function fetchUser() {
+      setLoading(true);
+      try {
+        const headers = (await getHeaders()) as any;
+        if (
+          headers.find(([key, _]: [string, string]) => key === 'x-user-id')?.[1]
+        ) {
+          setUser({
+            id:
+              headers.find(
+                ([key, _]: [string, string]) => key === 'x-user-id'
+              )?.[1] || '',
+            name:
+              headers.find(
+                ([key, _]: [string, string]) => key === 'x-user-name'
+              )?.[1] || '',
+            imageUrl:
+              headers.find(
+                ([key, _]: [string, string]) => key === 'x-user-image'
+              )?.[1] || '',
+            email:
+              headers.find(
+                ([key, _]: [string, string]) => key === 'x-user-email'
+              )?.[1] || '',
+            role: headers.find(
+              ([key, _]: [string, string]) => key === 'x-user-role'
+            )?.[1] as 'BUYER' | 'SELLER' | 'ADMIN',
+            addresses: [],
+          });
+        }
+      } catch {
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchUser();
+  }, []);
 
   // Call server-side loginUser for login
   const signin = async (email: string, pass: string) => {

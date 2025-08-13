@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { supabase } from '@/lib/supabase';
 
 export default function AccountPage() {
   const { user, loading } = useAuth();
@@ -30,17 +31,54 @@ export default function AccountPage() {
     }
   }, [user, loading, router]);
 
-  const handleSaveChanges = (e: React.FormEvent) => {
+  const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    // In a real app, you would have logic to update user details.
-    setTimeout(() => {
+
+    if (!user) {
       toast({
-        title: 'Changes Saved!',
-        description: 'Your account details have been updated.',
+        title: 'User not found',
+        description: 'Please sign in again.',
+        variant: 'destructive',
       });
       setIsSaving(false);
-    }, 1000);
+      return;
+    }
+
+    let uploadedImageUrl = user?.imageUrl;
+
+    if (selectedImage) {
+      const formData = new FormData();
+      formData.append('file', selectedImage);
+      formData.append('userId', user.id);
+
+      const res = await fetch('/api/account/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        toast({
+          title: 'Upload failed',
+          description: result.error || 'Unknown error',
+          variant: 'destructive',
+        });
+        setIsSaving(false);
+        return;
+      }
+
+      uploadedImageUrl = result.publicUrl;
+    }
+
+    console.log('Updated image URL:', uploadedImageUrl);
+
+    toast({
+      title: 'Changes Saved!',
+      description: 'Your account details have been updated.',
+    });
+    setIsSaving(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {

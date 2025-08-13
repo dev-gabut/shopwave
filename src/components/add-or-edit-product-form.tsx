@@ -27,7 +27,10 @@ export type AddOrEditProductFormProps = {
   };
 };
 
-const ProductImageUpload = dynamic(() => import("@/components/product-image-upload"), { ssr: false });
+const ProductImageUpload = dynamic(
+  () => import('@/components/product-image-upload'),
+  { ssr: false }
+);
 
 export default function AddOrEditProductForm({ showcases, categories, shopId, defaultValues }: AddOrEditProductFormProps) {
   const [images, setImages] = useState<ProductImage[]>([]);
@@ -35,13 +38,15 @@ export default function AddOrEditProductForm({ showcases, categories, shopId, de
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
 
-  const setPrimaryImage = (imageId: number) => {
-    setImages(prev => prev.map(img => ({ ...img, isPrimary: img.id === imageId })));
+  const setPrimaryImage = (imageId: string) => {
+    setImages((prev) =>
+      prev.map((img) => ({ ...img, isPrimary: img.id === imageId }))
+    );
   };
-  const removeImage = (imageId: number) => {
-    setImages(prev => {
-      const updated = prev.filter(img => img.id !== imageId);
-      if (updated.length > 0 && !updated.some(img => img.isPrimary)) {
+  const removeImage = (imageId: string) => {
+    setImages((prev) => {
+      const updated = prev.filter((img) => img.id !== imageId);
+      if (updated.length > 0 && !updated.some((img) => img.isPrimary)) {
         updated[0].isPrimary = true;
       }
       return updated;
@@ -59,7 +64,7 @@ export default function AddOrEditProductForm({ showcases, categories, shopId, de
     setSubmitting(true);
     const form = new FormData(e.currentTarget);
     form.append('shopId', String(shopId));
-    images.forEach(img => {
+    images.forEach((img) => {
       if (img.file) {
         form.append('images', img.file);
       }
@@ -97,7 +102,10 @@ export default function AddOrEditProductForm({ showcases, categories, shopId, de
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Product Name */}
           <div className="md:col-span-2">
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Product Name *
             </label>
             <input
@@ -112,7 +120,10 @@ export default function AddOrEditProductForm({ showcases, categories, shopId, de
           </div>
           {/* Product Description */}
           <div className="md:col-span-2">
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="description"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Description *
             </label>
             <textarea
@@ -127,7 +138,10 @@ export default function AddOrEditProductForm({ showcases, categories, shopId, de
           </div>
           {/* Price */}
           <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="price"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Price (Rp) *
             </label>
             <input
@@ -144,7 +158,10 @@ export default function AddOrEditProductForm({ showcases, categories, shopId, de
           </div>
           {/* Stock */}
           <div>
-            <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="stock"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Stock *
             </label>
             <input
@@ -160,7 +177,10 @@ export default function AddOrEditProductForm({ showcases, categories, shopId, de
           </div>
           {/* Category */}
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="category"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Category *
             </label>
             <select
@@ -171,7 +191,7 @@ export default function AddOrEditProductForm({ showcases, categories, shopId, de
               value={defaultValues?.category || ''}
             >
               <option value="">Select category</option>
-              {categories.map(category => (
+              {categories.map((category) => (
                 <option key={category.value} value={category.value}>
                   {category.label}
                 </option>
@@ -180,7 +200,10 @@ export default function AddOrEditProductForm({ showcases, categories, shopId, de
           </div>
           {/* Showcase */}
           <div>
-            <label htmlFor="showcaseId" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="showcaseId"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Showcase
             </label>
             <select
