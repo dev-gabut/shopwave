@@ -1,29 +1,45 @@
 import { Pencil, Trash2 } from 'lucide-react';
-import { Product } from '@/lib/types';
-import { deleteProduct } from '@/models/product';
+import { productServiceInstance } from '@/models/Product/product-service';
 import { revalidatePath } from 'next/cache';
+import Link from 'next/link';
+import Image from 'next/image';
 
 // Server action for deleting a product
 async function deleteProductAction(formData: FormData) {
   'use server';
-  const id = Number(formData.get('productId'));
-  if (!id) return;
-  await deleteProduct(id);
+  const id = formData.get('productId');
+  
+  if (!id || typeof id !== 'string') return;
+
+  await productServiceInstance.delete(id);
   revalidatePath('/seller');
 }
 
 interface SellerProductCardProps {
-  product: Product;
+  productId: string;
 }
 
-export function SellerProductCard({ product }: SellerProductCardProps) {
+export async function SellerProductCard({ productId }: SellerProductCardProps) {
+  // Ambil data produk di server
+  const product = await productServiceInstance.getById(productId);
+
+  if (!product) {
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <p className="text-gray-500">Produk tidak ditemukan</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow relative">
       <div className="aspect-square bg-gray-200 flex items-center justify-center">
         {product.images.length > 0 ? (
-          <img
-            src={product.images[0]}
+          <Image
+            src={product.images[0].imageUrl}
             alt={product.name}
+            width={600}
+            height={600}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -46,14 +62,16 @@ export function SellerProductCard({ product }: SellerProductCardProps) {
       </div>
       {/* Edit and Delete Buttons */}
       <div className="absolute bottom-2 right-2 flex gap-2 z-10">
-        <a
+        <Link
           href={`/seller/edit_product/${product.id}`}
           className="bg-white border border-gray-300 rounded-full p-2 shadow hover:bg-gray-100 transition-colors"
           title="Edit"
         >
           <Pencil className="w-4 h-4 text-gray-600" />
-        </a>
-        <form action={deleteProductAction}>
+        </Link>
+        <form
+          action={deleteProductAction}
+        >
           <input type="hidden" name="productId" value={product.id} />
           <button
             type="submit"

@@ -28,7 +28,7 @@ export function ProductsArea({ products }: ProductsAreaProps) {
       </div>
       <div className="grid grid-cols-3 gap-4">
         {products.map((product: Product) => (
-          <SellerProductCard key={product.id} product={product} />
+          <SellerProductCard key={product.id} productId={product.id} />
         ))}
       </div>
       {products.length === 0 && (
