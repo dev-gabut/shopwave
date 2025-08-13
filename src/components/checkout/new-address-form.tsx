@@ -6,7 +6,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 
 type CheckoutFormValues = {
   email: string;
-  addressId?: number;
+  addressId?: string;
   newAddress?: {
     label: string;
     address: string;

@@ -28,7 +28,7 @@ interface Address {
 
 type CheckoutFormValues = {
   email: string;
-  addressId?: number;
+  addressId?: string;
   newAddress?: {
     label: string;
     address: string;

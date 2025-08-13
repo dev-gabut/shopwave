@@ -21,7 +21,7 @@ import { NewAddressForm } from '@/components/checkout/new-address-form';
 
 const checkoutSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
-  addressId: z.number().optional(),
+  addressId: z.string().optional(),
   newAddress: z.object({
     label: z.string().min(1, { message: 'Address label is required.' }),
     address: z.string().min(1, { message: 'Address is required.' }),

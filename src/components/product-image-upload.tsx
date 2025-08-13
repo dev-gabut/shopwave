@@ -46,7 +46,7 @@ export default function ProductImageUpload({
           const reader = new FileReader();
           reader.onload = (ev) => {
             resolve({
-              id: Date.now() + Math.random(),
+              id: String(Date.now() + Math.random()),
               file,
               url:
                 typeof ev.target?.result === 'string' ? ev.target.result : '',

@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create the new address
-    const newAddress = await createUserAddress(parseInt(currentUser.id), {
+    const newAddress = await createUserAddress(currentUser.id, {
       label,
       address,
       city,
